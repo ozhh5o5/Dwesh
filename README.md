@@ -50,22 +50,7 @@ Open:
 
 - `http://127.0.0.1:8000`
 
-### 2) Optional: MongoDB
 
-DWESH can use MongoDB for persistence.
-
-- Set `MONGO_URL` (default: `mongodb://localhost:27017`)
-- Set `DB_NAME` (default in code)
-
-You can place these in `backend/.env` (ignored by git).
-
-## Repository hygiene (Solution Challenge)
-
-This repo is set up to avoid committing generated artifacts:
-
-- Ignores `node_modules/`, virtual environments, Playwright reports
-- Ignores generated decks/docs (`*.pptx`, `*.pdf`)
-- Ignores datasets by default (`*.csv`, `*.xlsx`) while keeping curated demo samples in [frontend/sample_data](frontend/sample_data)
 
 ## More details
 
