@@ -1,0 +1,174 @@
+# =========================
+
+# Python
+
+# =========================
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Compiled files
+
+*.so
+
+# Distribution / packaging
+
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# =========================
+
+# Virtual Environment
+
+# =========================
+
+venv/
+.venv/
+.env/
+.env.*
+
+# =========================
+
+# IDE / Editor
+
+# =========================
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+
+# OS Files
+
+# =========================
+
+.DS_Store
+Thumbs.db
+
+# =========================
+
+# Logs
+
+# =========================
+
+*.log
+
+# =========================
+
+# Environment Variables
+
+# =========================
+
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# =========================
+
+# FastAPI / Uvicorn
+
+# =========================
+
+*.pid
+*.pid.lock
+
+# =========================
+
+# Data / Outputs
+
+# =========================
+
+# Ignore datasets by default (keep only curated demo samples)
+*.csv
+*.xlsx
+*.xls
+
+# Keep small demo data used by the UI
+!frontend/sample_data/*.csv
+
+# Ignore common generated artifacts / exports
+reports/
+plots/
+outputs/
+exports/
+artifacts/
+
+*.parquet
+*.feather
+
+# But KEEP your sample JSONs
+
+!backend/data/tasks/*.json
+
+# =========================
+
+# ML / Models
+
+# =========================
+
+models/
+*.pkl
+*.joblib
+*.h5
+
+# =========================
+
+# Testing / Coverage
+
+# =========================
+
+.coverage
+htmlcov/
+.pytest_cache/
+
+# =========================
+
+# Node (if you upgrade frontend later)
+
+# =========================
+
+node_modules/
+.next/
+out/
+
+# Playwright
+test-results/
+playwright-report/
+
+# =========================
+
+# Misc
+
+# =========================
+
+# Slide decks / documents (do not upload generated submission decks)
+*.ppt
+*.pptx
+*.pdf
+
+# PPT generator script (submission artifact)
+generate_ppt.py
+
+# Generated frontend prototype file (not used)
+frontend/index2.html
+
+*.sqlite3
+*.db

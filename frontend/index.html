@@ -1,0 +1,1925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>DWESH — AI Fairness Auditing Platform</title>
+<meta name="description" content="DWESH: Detect, Weigh, Evaluate, Solve Hidden biases in AI systems. Upload datasets, run adversarial audits, probe models for bias, and generate compliance reports."/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+:root{color-scheme:light;--ff-h:'Manrope',sans-serif;--ff-b:'Manrope',sans-serif;--ff-m:'IBM Plex Mono',monospace}
+[data-theme="dark"]{
+color-scheme:dark;
+--bg:#0f172a;--bg2:#1e293b;--surface:#1e293b;--card:#1e293b;--card2:#0f172a;
+--border:rgba(255,255,255,.06);--border2:rgba(255,255,255,.1);--border3:rgba(255,255,255,.15);
+--accent:#818cf8;--accent2:#a5b4fc;--accent-dim:rgba(129,140,248,.08);--accent-border:rgba(129,140,248,.2);
+--green:#34d399;--green-dim:rgba(52,211,153,.08);--green-border:rgba(52,211,153,.2);
+--amber:#fbbf24;--amber-dim:rgba(251,191,36,.08);--amber-border:rgba(251,191,36,.2);
+--red:#fb7185;--red-dim:rgba(251,113,133,.08);--red-border:rgba(251,113,133,.2);
+--blue:#818cf8;--blue-dim:rgba(129,140,248,.08);--blue-border:rgba(129,140,248,.2);
+--purple:#c084fc;--purple-dim:rgba(192,132,252,.08);--purple-border:rgba(192,132,252,.2);
+--text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
+--sidebar-bg:#1e293b;--topbar-bg:#0f172a;
+}
+html{height:100%}
+body{height:100%;font-family:var(--ff-b);background:var(--bg);color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased;font-size:13px;transition:background .3s,color .3s}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(99,102,241,.2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:rgba(99,102,241,.4)}
+::selection{background:var(--accent-dim);color:var(--accent)}
+
+/* "?"?"? SHELL "?"?"? */
+#shell{display:flex;height:100vh;background:var(--bg)}
+
+/* "?"?"? SIDEBAR "?"?"? */
+#sidebar{
+width:var(--sb);flex-shrink:0;height:100vh;display:flex;flex-direction:column;
+background:var(--sidebar-bg);border-right:1px solid var(--border);
+position:relative;z-index:100;overflow:hidden;transition:background .3s
+}
+
+.sb-logo{
+padding:20px 16px 18px;display:flex;align-items:center;gap:11px;flex-shrink:0;
+cursor:pointer;border-bottom:1px solid var(--border)
+}
+.sb-logo-mark{
+width:36px;height:36px;border-radius:10px;flex-shrink:0;
+background:linear-gradient(135deg,#4f46e5,#6366f1);
+display:flex;align-items:center;justify-content:center;
+box-shadow:0 2px 8px rgba(79,70,229,.3)
+}
+.sb-logo-mark svg{width:18px;height:18px;color:#fff;stroke-width:2.5}
+.sb-logo-text{font-family:var(--ff-h);font-size:17px;font-weight:800;letter-spacing:-.3px;line-height:1;color:var(--text)}
+.sb-logo-text span{color:var(--accent)}
+.sb-logo-sub{font-size:9px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;font-family:var(--ff-h);margin-top:3px;font-weight:500}
+
+.sb-section-label{
+padding:18px 18px 6px;font-size:9px;color:var(--text3);text-transform:uppercase;
+letter-spacing:.14em;font-family:var(--ff-h);font-weight:600;flex-shrink:0
+}
+.sb-nav{flex:1;overflow-y:auto;padding:8px 10px;scrollbar-width:none}
+.sb-nav::-webkit-scrollbar{display:none}
+
+.nav-tab{
+display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;
+transition:all .2s cubic-bezier(.4,0,.2,1);color:var(--text3);font-size:12px;font-weight:500;
+white-space:nowrap;border:1px solid transparent;margin-bottom:2px;font-family:var(--ff-h);
+position:relative;overflow:hidden
+}
+.nav-tab svg{width:16px;height:16px;stroke-width:1.8;flex-shrink:0;transition:color .2s}
+.nav-tab:hover{color:var(--text);background:var(--surface)}
+.nav-tab.active{color:var(--accent);background:var(--accent-dim);border-color:var(--accent-border);font-weight:600}
+.nav-tab.active svg{color:var(--accent)}
+
+.nav-tab-label{flex:1}
+.nav-tab-badge{
+font-size:8px;font-family:var(--ff-h);font-weight:700;background:var(--accent-dim);color:var(--accent);
+border:1px solid var(--accent-border);border-radius:4px;padding:2px 6px;flex-shrink:0;letter-spacing:.04em
+}
+.theme-toggle-btn{
+display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;cursor:pointer;
+background:var(--surface);border:1px solid var(--border);color:var(--text2);font-size:12px;
+font-family:var(--ff-h);font-weight:500;width:100%;margin-bottom:10px;transition:all .2s
+}
+.theme-toggle-btn:hover{color:var(--text);border-color:var(--border2)}
+.theme-toggle-btn svg{width:15px;height:15px;stroke-width:2}
+
+.sb-footer{
+padding:14px 10px;border-top:1px solid var(--border);flex-shrink:0
+}
+.sb-status{
+display:flex;align-items:center;gap:9px;padding:10px 12px;background:rgba(255,255,255,.02);
+border:1px solid var(--border);border-radius:10px;margin-bottom:8px
+}
+.sb-status-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0;transition:all .3s}
+.sb-status.live .sb-status-dot{
+background:var(--green);box-shadow:0 0 0 0 rgba(52,211,153,.4);
+animation:pulseGreen 2s infinite
+}
+@keyframes pulseGreen{0%{box-shadow:0 0 0 0 rgba(52,211,153,.4)}70%{box-shadow:0 0 0 6px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+.sb-status-text{font-size:11px;color:var(--text3);font-family:var(--ff-h);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.sb-run-badge{
+font-family:var(--ff-m);font-size:9.5px;color:var(--accent);background:var(--accent-dim);
+border:1px solid var(--accent-border);border-radius:6px;padding:2px 7px;display:none;
+word-break:break-all;text-align:center;margin-top:4px
+}
+
+/* "?"?"? MAIN "?"?"? */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+
+/* Topbar */
+#topbar{
+height:56px;flex-shrink:0;display:flex;align-items:center;padding:0 28px;gap:12px;
+background:var(--topbar-bg);border-bottom:1px solid var(--border);
+position:relative;z-index:50;transition:background .3s
+}
+.topbar-breadcrumb{
+display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);font-family:var(--ff-h)
+}
+.topbar-breadcrumb span{color:var(--text2)}
+.topbar-breadcrumb i{width:12px;height:12px}
+.topbar-title{font-family:var(--ff-h);font-size:14px;font-weight:600;color:var(--text);letter-spacing:-.2px}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.topbar-chip{
+display:flex;align-items:center;gap:6px;padding:5px 11px;background:rgba(255,255,255,.02);
+border:1px solid var(--border);border-radius:999px;font-size:10.5px;color:var(--text3);
+font-family:var(--ff-h)
+}
+.topbar-chip svg{width:12px;height:12px}
+
+/* Pages */
+#pages{flex:1;overflow-y:auto;scroll-behavior:smooth}
+.page{display:none;animation:pageIn .28s cubic-bezier(.4,0,.2,1)}
+.page.active{display:block}
+@keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.app-page{max-width:1440px;margin:0 auto;padding:28px 32px 80px}
+.page-head{margin-bottom:24px}
+.page-head h1{font-family:var(--ff-h);font-size:22px;font-weight:700;letter-spacing:-.5px;color:var(--text);margin-bottom:4px}
+.page-head p{font-size:12.5px;color:var(--text3)}
+
+/* Grids */
+.col-2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.col-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.col-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.row{display:flex;gap:14px;flex-wrap:wrap}
+.stack{display:flex;flex-direction:column;gap:14px}
+
+/* Card */
+.card{
+background:var(--card);
+border:1px solid var(--border);border-radius:var(--r);padding:20px;
+position:relative;transition:border-color .25s,box-shadow .25s;overflow:hidden;
+box-shadow:0 1px 3px rgba(0,0,0,.04)
+}
+.card:hover{border-color:var(--border2);box-shadow:0 4px 12px rgba(0,0,0,.06)}
+.card-head{
+font-family:var(--ff-h);font-size:11px;font-weight:600;color:var(--text3);margin-bottom:16px;
+display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:.07em
+}
+.card-head-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.card-accent-line{
+position:absolute;top:0;left:0;right:0;height:2px;
+background:linear-gradient(90deg,var(--accent),var(--purple));
+opacity:0;transition:opacity .3s
+}
+.card:hover .card-accent-line{opacity:1}
+
+/* Metric card */
+.mcard{
+background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+padding:18px;transition:all .25s;position:relative;overflow:hidden;cursor:default;
+box-shadow:0 1px 3px rgba(0,0,0,.04)
+}
+.mcard::after{
+content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+background:linear-gradient(90deg,transparent,currentColor,transparent);opacity:0;transition:opacity .3s
+}
+.mcard:hover{transform:translateY(-2px);border-color:var(--border2)}
+.mcard:hover::after{opacity:.3}
+.mcard-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;font-family:var(--ff-h)}
+.mcard-val{font-size:30px;font-weight:300;font-family:var(--ff-m);letter-spacing:-.8px;color:var(--text);line-height:1}
+.mcard-glow{position:absolute;top:-20px;right:-20px;width:80px;height:80px;border-radius:50%;filter:blur(30px);opacity:.3;pointer-events:none}
+.mcard-tag{
+display:inline-flex;align-items:center;gap:5px;margin-top:12px;
+font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:999px;font-family:var(--ff-h);letter-spacing:.06em
+}
+.mcard-trend{font-size:9px;color:var(--text3);margin-top:5px;font-family:var(--ff-m)}
+
+/* Tags */
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:700;padding:3px 8px;border-radius:999px;font-family:var(--ff-h);letter-spacing:.05em}
+.tag-ok,.tag-low,.tag-pass{color:var(--green);background:var(--green-dim);border:1px solid var(--green-border)}
+.tag-no,.tag-critical,.tag-high,.tag-fail{color:var(--red);background:var(--red-dim);border:1px solid var(--red-border)}
+.tag-warn,.tag-moderate,.tag-medium{color:var(--amber);background:var(--amber-dim);border:1px solid var(--amber-border)}
+.tag-info{color:var(--blue);background:var(--blue-dim);border:1px solid var(--blue-border)}
+
+/* Buttons */
+.btn{
+display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 18px;
+border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent;
+transition:all .2s cubic-bezier(.4,0,.2,1);font-family:var(--ff-h);letter-spacing:-.1px;line-height:1;
+position:relative;overflow:hidden
+}
+.btn svg{flex-shrink:0}
+.btn-accent{
+background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;
+box-shadow:0 2px 8px rgba(79,70,229,.25)
+}
+.btn-accent:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(79,70,229,.35)}
+.btn-accent:active{transform:translateY(0);box-shadow:0 2px 8px rgba(79,70,229,.2)}
+.btn-accent:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-dark{background:var(--card2);color:var(--text2);border:1px solid var(--border2)}
+.btn-dark:hover{background:#131d34;color:var(--text);border-color:var(--border3)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.btn-ghost:hover{background:var(--card2);color:var(--text);border-color:var(--border3)}
+.btn-lg{padding:13px 24px;font-size:13.5px;border-radius:12px}
+.btn-sm{padding:6px 12px;font-size:11px}
+
+/* Form elements */
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;font-family:var(--ff-h);font-weight:600}
+input[type="text"],input[type="number"],select,textarea{
+width:100%;padding:10px 14px;background:var(--card);border:1px solid var(--border2);
+border-radius:8px;color:var(--text);font-size:13px;font-family:var(--ff-b);
+transition:border-color .2s,box-shadow .2s
+}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+select option{background:var(--card);color:var(--text)}
+input[type="range"]{width:100%;-webkit-appearance:none;appearance:none;background:transparent;margin-top:6px}
+input[type="range"]::-webkit-slider-runnable-track{height:3px;background:var(--card2);border-radius:2px}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;background:var(--accent);border-radius:50%;margin-top:-5.5px;cursor:pointer;box-shadow:0 0 8px rgba(56,189,248,.4)}
+
+/* Upload zone */
+.upload{
+border:1.5px dashed var(--border2);border-radius:var(--r);padding:32px;text-align:center;
+cursor:pointer;transition:all .22s;background:rgba(56,189,248,.01)
+}
+.upload:hover,.upload.over{border-color:var(--accent);background:var(--accent-dim)}
+.upload svg{width:28px;height:28px;color:var(--accent);margin-bottom:12px;stroke-width:1.5}
+.upload-t{font-size:13px;color:var(--text);font-weight:500;margin-bottom:4px}
+.upload-s{font-size:11px;color:var(--text3)}
+
+/* Empty state */
+.empty{text-align:center;padding:70px 24px;color:var(--text3)}
+.empty svg{width:44px;height:44px;margin:0 auto 16px;color:var(--text3);opacity:.3;stroke-width:1.2}
+.empty h3{font-family:var(--ff-h);font-size:16px;color:var(--text2);margin-bottom:7px;font-weight:500}
+.empty p{font-size:12.5px;line-height:1.6}
+
+/* Chips */
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+padding:7px 15px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;
+border:1px solid;transition:all .2s;background:transparent;font-family:var(--ff-h);letter-spacing:.02em
+}
+.chip:hover{transform:translateY(-1px)}
+
+/* Chart box */
+.chartbox{position:relative;width:100%}
+
+/* Spinner */
+.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.1);border-top-color:var(--accent);border-radius:50%;animation:spin .65s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* AI Box */
+.ai-box{
+background:linear-gradient(135deg,rgba(56,189,248,.04),rgba(129,140,248,.03));
+border:1px solid var(--border2);border-radius:12px;padding:16px;position:relative;overflow:hidden
+}
+.ai-box::before{
+content:'';position:absolute;top:0;left:0;right:0;height:1px;
+background:linear-gradient(90deg,transparent,var(--accent-border),transparent)
+}
+.ai-head{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.ai-icon{
+width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--blue));
+display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0;
+box-shadow:0 0 12px rgba(56,189,248,.2)
+}
+.ai-icon svg{width:11px;height:11px;stroke-width:2.5}
+.ai-text{color:var(--text2);line-height:1.78;font-size:12px}
+
+/* Violation item */
+.vitem{
+padding:13px;background:rgba(251,113,133,.03);border:1px solid rgba(251,113,133,.1);
+border-left:2px solid var(--red);border-radius:10px;display:flex;gap:10px;
+margin-bottom:8px;align-items:flex-start
+}
+.vitem:last-child{margin-bottom:0}
+.alert{padding:14px;border-radius:10px;font-size:12px;text-align:center}
+.alert-ok{background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:11px 10px;font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--ff-h);font-weight:600;border-bottom:1px solid var(--border)}
+td{padding:11px 10px;border-bottom:1px solid rgba(255,255,255,.015);color:var(--text2)}
+tr:hover td{background:rgba(255,255,255,.008)}
+tr:last-child td{border-bottom:none}
+code{font-family:var(--ff-m);font-size:10.5px;background:rgba(255,255,255,.04);padding:2px 6px;border-radius:5px;color:var(--text2);border:1px solid rgba(255,255,255,.04)}
+
+/* Progress */
+.ptrack{height:5px;background:var(--card2);border-radius:3px;overflow:hidden}
+.pfill{height:100%;border-radius:3px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+.srow{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.srow-l{width:120px;font-size:11.5px;color:var(--text2);font-weight:450}
+.srow-t{flex:1;height:5px;background:var(--card2);border-radius:3px;overflow:hidden}
+.srow-f{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.srow-v{width:34px;text-align:right;font-family:var(--ff-m);font-size:11px;color:var(--text2)}
+.snum{font-family:var(--ff-m);font-size:18px;font-weight:500;color:var(--text)}
+.slbl{font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;font-family:var(--ff-h)}
+
+/* Terminal */
+.term{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;font-family:var(--ff-m);font-size:11px;color:var(--green);height:180px;overflow-y:auto;white-space:pre-wrap;line-height:1.55}
+[data-theme="dark"] .term{background:#020408}
+
+/* Heatmap cells */
+.hcell{padding:14px;text-align:center;font-family:var(--ff-m);font-size:12px;border-radius:8px;font-weight:500;transition:transform .2s,box-shadow .2s}
+.hcell:hover{transform:scale(1.05);box-shadow:0 4px 16px rgba(0,0,0,.3)}
+
+/* Decision pill */
+.dpill{padding:10px 18px;border-radius:999px;font-size:13px;font-weight:700;font-family:var(--ff-h);letter-spacing:.04em;display:inline-flex;align-items:center;gap:7px}
+.gtile{padding:13px 10px;background:var(--card2);border:1px solid var(--border);border-radius:10px;text-align:center;transition:transform .15s,border-color .2s}
+.gtile:hover{transform:translateY(-1px);border-color:var(--border3)}
+.strat{padding:14px;background:var(--card2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all .2s}
+.strat:hover{border-color:var(--accent-border);background:var(--accent-dim)}
+.grade-ring{width:100px;height:100px;border-radius:50%;border:3px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--ff-h);font-size:46px;font-weight:800;color:var(--accent);flex-shrink:0;box-shadow:inset 0 0 40px rgba(56,189,248,.08),0 0 30px rgba(56,189,248,.12)}
+
+/* "?"?"? HOME HERO "?"?"? */
+.home-hero{position:relative;min-height:540px;display:flex;align-items:center;justify-content:center;padding:60px 40px 50px;overflow:hidden;background:linear-gradient(135deg,rgba(79,70,229,.04),rgba(99,102,241,.02),rgba(139,92,246,.03))}
+.hero-bg{position:absolute;inset:0;pointer-events:none}
+.hero-mesh{position:absolute;inset:0;background-image:linear-gradient(rgba(79,70,229,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(79,70,229,.03) 1px,transparent 1px);background-size:50px 50px;mask-image:radial-gradient(ellipse 70% 70% at 50% 50%,black 30%,transparent 80%);pointer-events:none}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(120px);opacity:.12;pointer-events:none}
+.hero-orb-1{width:500px;height:500px;background:radial-gradient(circle,#4f46e5,#6366f1);top:-200px;left:-180px;animation:orbDrift 18s ease-in-out infinite}
+.hero-orb-2{width:420px;height:420px;background:radial-gradient(circle,#8b5cf6,#6366f1);bottom:-160px;right:-140px;animation:orbDrift 22s ease-in-out infinite reverse}
+.hero-orb-3{width:300px;height:300px;background:radial-gradient(circle,#06b6d4,#4f46e5);top:50%;left:55%;animation:orbDrift 15s ease-in-out infinite 4s;opacity:.08}
+@keyframes orbDrift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-30px) scale(1.08)}66%{transform:translate(-20px,20px) scale(.96)}}
+.hero-content{position:relative;z-index:2;max-width:760px;text-align:center}
+.hero-badge{
+display:inline-flex;align-items:center;gap:8px;padding:7px 16px;
+background:var(--accent-dim);border:1px solid var(--accent-border);
+border-radius:999px;font-size:11px;font-weight:600;color:var(--accent);margin-bottom:24px;
+font-family:var(--ff-h);letter-spacing:.05em
+}
+.hero-badge svg{width:12px;height:12px}
+.hero-h1{font-family:var(--ff-h);font-size:clamp(42px,7vw,70px);font-weight:800;letter-spacing:-2px;line-height:1.04;margin-bottom:22px;color:var(--text)}
+.hero-h1 em{font-style:normal;background:linear-gradient(135deg,var(--accent) 20%,var(--blue) 80%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-p{font-size:15px;color:var(--text2);max-width:560px;margin:0 auto 34px;line-height:1.75}
+.hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:54px}
+.hero-stats{display:flex;gap:0;justify-content:center;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:38px}
+.hero-stat{padding:0 36px;border-right:1px solid var(--border);text-align:center}
+.hero-stat:last-child{border-right:none}
+.hero-stat-val{font-family:var(--ff-h);font-size:28px;font-weight:700;letter-spacing:-.5px;background:linear-gradient(135deg,var(--text),var(--text2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-stat-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-top:5px;font-family:var(--ff-h)}
+
+/* Home sections */
+.home-section{max-width:1200px;margin:0 auto;padding:70px 40px}
+.home-section-label{display:inline-flex;align-items:center;gap:7px;font-size:10px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.14em;margin-bottom:12px;font-family:var(--ff-h)}
+.home-section-label::before{content:'';width:18px;height:1px;background:var(--accent);opacity:.5}
+.home-section-title{font-family:var(--ff-h);font-size:36px;font-weight:700;letter-spacing:-1px;line-height:1.12;margin-bottom:12px;color:var(--text)}
+.home-section-sub{font-size:14px;color:var(--text3);max-width:580px;line-height:1.7;margin-bottom:36px}
+
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.feature-card{
+padding:24px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+transition:all .28s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;cursor:pointer
+}
+.feature-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--accent-dim),transparent 60%);opacity:0;transition:opacity .3s}
+.feature-card:hover{transform:translateY(-3px);border-color:var(--border3);box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.feature-card:hover::before{opacity:1}
+.feature-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.feature-icon svg{width:18px;height:18px;stroke-width:2}
+.feature-card h3{font-family:var(--ff-h);font-size:15px;font-weight:600;letter-spacing:-.2px;margin-bottom:8px;color:var(--text)}
+.feature-card p{font-size:12.5px;color:var(--text3);line-height:1.68}
+
+.domain-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.domain-card{
+padding:26px 22px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+text-align:center;cursor:pointer;transition:all .22s
+}
+.domain-card:hover{transform:translateY(-2px);border-color:var(--accent-border);background:var(--surface);box-shadow:0 6px 20px rgba(0,0,0,.06)}
+.domain-card h4{font-family:var(--ff-h);font-size:15px;font-weight:600;margin-bottom:7px;color:var(--text)}
+.domain-card p{font-size:11.5px;color:var(--text3);line-height:1.55}
+
+.steps-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.step-item{padding:26px 22px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);position:relative}
+.step-num{
+width:32px;height:32px;border-radius:9px;background:var(--accent-dim);border:1px solid var(--accent-border);
+color:var(--accent);display:flex;align-items:center;justify-content:center;
+font-family:var(--ff-h);font-weight:700;font-size:14px;margin-bottom:14px;
+box-shadow:0 0 16px rgba(56,189,248,.12)
+}
+.step-item h4{font-family:var(--ff-h);font-size:15px;font-weight:600;margin-bottom:8px;color:var(--text)}
+.step-item p{font-size:12.5px;color:var(--text3);line-height:1.68}
+
+/* Loader */
+#loader{position:fixed;inset:0;background:rgba(249,250,251,.92);z-index:1000;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;backdrop-filter:blur(8px)}
+[data-theme="dark"] #loader{background:rgba(15,23,42,.92)}
+#loader.vis{display:flex}
+#loader .spin{width:34px;height:34px;border-width:3px;border-top-color:var(--accent)}
+#loader span{font-size:12.5px;color:var(--text2)}
+
+/* Toast */
+#toast{
+position:fixed;bottom:24px;right:24px;z-index:1100;
+background:var(--card);border:1px solid var(--border2);border-radius:12px;
+padding:13px 18px;font-size:12.5px;color:var(--text);backdrop-filter:blur(16px);
+transform:translateY(14px) scale(.96);opacity:0;transition:all .3s cubic-bezier(.22,1,.36,1);
+pointer-events:none;max-width:340px;font-weight:450;
+box-shadow:0 8px 24px rgba(0,0,0,.1);
+display:flex;align-items:center;gap:9px
+}
+#toast.show{transform:translateY(0) scale(1);opacity:1}
+
+/* Dashboard quick-start */
+.qcard{
+padding:20px;border-radius:14px;border:1px solid var(--border);cursor:pointer;
+transition:all .22s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;
+background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.04)
+}
+.qcard:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.qcard-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.qcard-icon svg{width:20px;height:20px;stroke-width:2}
+.qcard h4{font-family:var(--ff-h);font-size:14px;font-weight:600;margin-bottom:6px;color:var(--text)}
+.qcard p{font-size:11.5px;color:var(--text3);line-height:1.6}
+.qcard-badge{position:absolute;top:14px;right:14px;font-size:9px;font-family:var(--ff-h);font-weight:700;padding:3px 8px;border-radius:999px;letter-spacing:.06em}
+.api-dot{width:8px;height:8px;border-radius:50%;background:var(--text3);flex-shrink:0;transition:background .3s}
+.api-dot.online{background:var(--green);box-shadow:0 0 0 0 rgba(52,211,153,.4);animation:pulseGreen 2s infinite}
+.stat-pill{display:flex;flex-direction:column;align-items:center;padding:14px 20px;background:var(--card2);border:1px solid var(--border);border-radius:12px;min-width:80px}
+.stat-pill-val{font-family:var(--ff-h);font-size:22px;font-weight:700;letter-spacing:-.5px;color:var(--text)}
+.stat-pill-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-top:4px;font-family:var(--ff-h)}
+
+/* Dividers */
+.section-divider{border:none;border-top:1px solid var(--border);margin:0}
+
+@media(max-width:900px){
+  .col-2,.col-3,.col-4{grid-template-columns:1fr}
+  .app-page{padding:22px 20px 60px}
+  .home-hero{padding:60px 20px 40px;min-height:480px}
+  .hero-stat{padding:0 20px}
+  #sidebar{width:56px}
+  .sb-logo-text,.sb-logo-sub,.nav-tab-label,.sb-section-label,.sb-status-text,.sb-run-badge{display:none}
+  .sb-logo{justify-content:center;padding:18px 10px}
+  .sb-status{justify-content:center}
+  .sb-footer{padding:10px 6px}
+  .nav-tab{justify-content:center;padding:10px}
+}
+@media(max-width:600px){
+  #topbar{padding:0 16px}
+  .home-section{padding:50px 20px}
+  .home-section-title{font-size:26px}
+  .hero-h1{letter-spacing:-1.2px}
+}
+</style>
+</head>
+<body>
+<div id="shell">
+
+<!-- "?"? SIDEBAR "?"? -->
+<aside id="sidebar">
+  <div class="sb-logo" onclick="goPage('home')" data-testid="logo-home">
+    <div class="sb-logo-mark"></div>
+    <div>
+      <div class="sb-logo-text"><span>DWESH</span></div>
+      <div class="sb-logo-sub">AI Fairness Platform</div>
+    </div>
+  </div>
+
+  <nav class="sb-nav" id="nav-tabs">
+    <div class="nav-tab active" data-page="home" onclick="goPage('home')">
+      <span class="nav-tab-label">Home</span>
+    </div>
+
+    <div class="sb-section-label">Core Tools</div>
+
+    <div class="nav-tab" data-page="audit" onclick="goPage('audit')">
+      <span class="nav-tab-label">Audit</span>
+    </div>
+    <div class="nav-tab" data-page="modelcheck" onclick="goPage('modelcheck')">
+      <span class="nav-tab-label">Model Checker</span>
+      <span class="nav-tab-badge">NEW</span>
+    </div>
+    <div class="nav-tab" data-page="lps" onclick="goPage('lps')">
+      <span class="nav-tab-label">LPS Simulator</span>
+      <span class="nav-tab-badge">NEW</span>
+    </div>
+    <div class="nav-tab" data-page="universes" onclick="goPage('universes')">
+      <span class="nav-tab-label">Parallel Universes</span>
+      <span class="nav-tab-badge">NEW</span>
+    </div>
+    <div class="nav-tab" data-page="costanalysis" onclick="goPage('costanalysis')">
+      <span class="nav-tab-label">Cost Analysis</span>
+      <span class="nav-tab-badge">NEW</span>
+    </div>
+    <div class="nav-tab" data-page="heatmap" onclick="goPage('heatmap')">
+      <span class="nav-tab-label">Heatmap</span>
+    </div>
+
+    <div class="sb-section-label">More Tools</div>
+
+    <div class="nav-tab" data-page="dashboard" onclick="goPage('dashboard')">
+      <span class="nav-tab-label">Dashboard</span>
+    </div>
+    <div class="nav-tab" data-page="whatif" onclick="goPage('whatif')">
+      <span class="nav-tab-label">What-If</span>
+    </div>
+    <div class="nav-tab" data-page="monitoring" onclick="goPage('monitoring')">
+      <span class="nav-tab-label">Monitoring</span>
+    </div>
+    <div class="nav-tab" data-page="training" onclick="goPage('training')">
+      <span class="nav-tab-label">RL Training</span>
+    </div>
+    <div class="nav-tab" data-page="mitigate" onclick="goPage('mitigate')">
+      <span class="nav-tab-label">Mitigate</span>
+    </div>
+    <div class="nav-tab" data-page="policies" onclick="goPage('policies')">
+      <span class="nav-tab-label">Policies</span>
+    </div>
+    <div class="nav-tab" data-page="policyeditor" onclick="goPage('policyeditor')">
+      <span class="nav-tab-label">Policy Editor</span>
+    </div>
+    <div class="nav-tab" data-page="trail" onclick="goPage('trail')">
+      <span class="nav-tab-label">Audit Trail</span>
+    </div>
+    <div class="nav-tab" data-page="report" onclick="goPage('report')">
+      <span class="nav-tab-label">Report Card</span>
+    </div>
+    <div class="nav-tab" data-page="benchmark" onclick="goPage('benchmark')">
+      <span class="nav-tab-label">Benchmark</span>
+    </div>
+    <div class="nav-tab" data-page="shadowai" onclick="goPage('shadowai')">
+      <span class="nav-tab-label">Shadow AI</span>
+    </div>
+  </nav>
+
+  <div class="sb-footer">
+    <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark Mode">
+      <svg id="theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+      </svg>
+      <svg id="theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true" style="display:none">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
+      </svg>
+      <span class="nav-tab-label" id="theme-label">Dark Mode</span>
+    </button>
+    <div class="sb-status" id="nav-status">
+      <span class="nav-status-dot sb-status-dot"></span>
+      <span class="sb-status-text" id="nav-domain">No audit</span>
+    </div>
+    <div class="sb-run-badge" id="nav-run"></div>
+  </div>
+</aside>
+
+<!-- "?"? MAIN "?"? -->
+<main id="main">
+  <header id="topbar">
+    <div class="topbar-breadcrumb">
+      
+      <span style="color:var(--text3)">/</span>
+      <span id="topbar-current">Home</span>
+    </div>
+    <div class="topbar-title" id="topbar-title">DWESH</div>
+    <div class="topbar-right">
+      <div class="topbar-chip" id="topbar-status-chip">
+        
+        <span id="topbar-status-text">Ready</span>
+      </div>
+    </div>
+  </header>
+
+  <div id="pages">
+
+    <!-- "?"?"? HOME "?"?"? -->
+    <section class="page active" id="page-home">
+      <div class="home-hero">
+        <div class="hero-bg">
+          
+          
+          
+          
+        </div>
+        <div class="hero-content">
+          <div class="hero-badge">AI-Powered Fairness Testing</div>
+          <h1 class="hero-h1">Find Bias.<br><em>Fix Models.</em><br>Build Trust.</h1>
+          <p class="hero-p">DWESH is your AI fairness training gym. Upload datasets, run adversarial audits, train bias-free models with reinforcement learning, and generate compliance reports — all in one place.</p>
+          <div class="hero-actions">
+            <button class="btn btn-accent btn-lg" onclick="goPage('audit')" data-testid="hero-start-audit">
+              Start Audit
+            </button>
+            <button class="btn btn-dark btn-lg" onclick="loadSample('hiring')" data-testid="hero-try-sample">
+              Try Sample Data
+            </button>
+          </div>
+          <div class="hero-stats">
+            <div class="hero-stat"><div class="hero-stat-val">12</div><div class="hero-stat-lbl">Fairness Policies</div></div>
+            <div class="hero-stat"><div class="hero-stat-val">4</div><div class="hero-stat-lbl">Domain Templates</div></div>
+            <div class="hero-stat"><div class="hero-stat-val">PPO</div><div class="hero-stat-lbl">RL Debiasing</div></div>
+            <div class="hero-stat"><div class="hero-stat-val">XAI</div><div class="hero-stat-lbl">Counterfactual</div></div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+      <div class="home-section">
+        <div class="home-section-label">Domains</div>
+        <h2 class="home-section-title">Built for Real-World Scenarios</h2>
+        <p class="home-section-sub">Pre-configured templates for the highest-risk AI applications.</p>
+        <div class="domain-grid">
+          <div class="domain-card" onclick="loadSample('hiring')" data-testid="domain-hiring">
+            <div style="color:var(--accent);margin:0 auto 16px;display:inline-flex"></div>
+            <h4>Hiring</h4><p>Resume screening, candidate ranking, interview scheduling bias</p>
+          </div>
+          <div class="domain-card" onclick="loadSample('loan')" data-testid="domain-loan">
+            <div style="color:var(--green);margin:0 auto 16px;display:inline-flex"></div>
+            <h4>Loan &amp; Finance</h4><p>Credit scoring, loan approval, interest rate discrimination</p>
+          </div>
+          <div class="domain-card" onclick="loadSample('medical')" data-testid="domain-medical">
+            <div style="color:var(--amber);margin:0 auto 16px;display:inline-flex"></div>
+            <h4>Medical</h4><p>Triage prioritization, treatment recommendation, risk assessment</p>
+          </div>
+          <div class="domain-card" onclick="loadSample('intersectional')" data-testid="domain-intersectional">
+            <div style="color:var(--red);margin:0 auto 16px;display:inline-flex"></div>
+            <h4>Intersectional</h4><p>Multi-axis bias across gender × race × age combinations</p>
+          </div>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+      <div class="home-section" style="padding-bottom:90px">
+        <div class="home-section-label">Workflow</div>
+        <h2 class="home-section-title">Three Steps to Fair AI</h2>
+        <div class="steps-row" style="margin-top:32px">
+          <div class="step-item"><div class="step-num">1</div><h4>Upload &amp; Audit</h4><p>Drop your CSV or pick a sample. DWESH injects adversarial bias and runs 8+ fairness metrics automatically.</p></div>
+          <div class="step-item"><div class="step-num">2</div><h4>Train &amp; Mitigate</h4><p>Use PPO reinforcement learning or choose from 5 mitigation strategies to reduce detected bias.</p></div>
+          <div class="step-item"><div class="step-num">3</div><h4>Report &amp; Ship</h4><p>Generate an A–F report card with policy compliance, Gemini narrative, and exportable PDF.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- "?"?"? DASHBOARD "?"?"? -->
+    <section class="page" id="page-dashboard">
+      <div class="app-page">
+
+        <!-- Status bar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+          <div>
+            <h1 style="font-family:var(--ff-h);font-size:22px;font-weight:700;letter-spacing:-.5px;color:var(--text);margin-bottom:4px">Control Center</h1>
+            <p style="font-size:12px;color:var(--text3)">Run an audit below or jump straight to any feature — results sync across all pages.</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 16px">
+            <span class="api-dot" id="dash-api-dot"></span>
+            <span style="font-size:11px;font-family:var(--ff-h);color:var(--text3)" id="dash-api-label">Checking API…</span>
+          </div>
+        </div>
+
+        <!-- Quick-launch domain cards -->
+        <div style="margin-bottom:28px">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;font-family:var(--ff-h);margin-bottom:12px">Quick Audit -- pick a domain</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+            <div class="qcard" onclick="loadSample('hiring')" id="qcard-hiring">
+              <div class="qcard-badge" style="background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent-border)">HIRING</div>
+              <div class="qcard-icon" style="background:var(--accent-dim);color:var(--accent)"></div>
+              <h4>Hiring Model</h4>
+              <p>Resume screening bias — gender &amp; race disparities, Title VII compliance</p>
+            </div>
+            <div class="qcard" onclick="loadSample('loan')" id="qcard-loan">
+              <div class="qcard-badge" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green-border)">FINANCE</div>
+              <div class="qcard-icon" style="background:var(--green-dim);color:var(--green)"></div>
+              <h4>Loan / Finance</h4>
+              <p>Credit scoring bias — racial proxy features, ECOA fair-lending rules</p>
+            </div>
+            <div class="qcard" onclick="loadSample('medical')" id="qcard-medical">
+              <div class="qcard-badge" style="background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber-border)">MEDICAL</div>
+              <div class="qcard-icon" style="background:var(--amber-dim);color:var(--amber)"></div>
+              <h4>Medical Triage</h4>
+              <p>Risk scoring bias — age/gender calibration, HHS §1557 requirements</p>
+            </div>
+            <div class="qcard" onclick="loadSample('intersectional')" id="qcard-intersect">
+              <div class="qcard-badge" style="background:var(--red-dim);color:var(--red);border:1px solid var(--red-border)">MULTI-AXIS</div>
+              <div class="qcard-icon" style="background:var(--red-dim);color:var(--red)"></div>
+              <h4>Intersectional</h4>
+              <p>Gender × Race × Age cross-axis bias — worst-affected subgroup detection</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feature nav grid -->
+        <div style="margin-bottom:28px">
+          <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;font-family:var(--ff-h);margin-bottom:12px">Feature Modules</div>
+          <div class="feature-grid">
+            <div class="feature-card" onclick="goPage('audit')"><div class="feature-icon" style="background:var(--accent-dim);color:var(--accent)"></div><h3>Adversarial Audit</h3><p>Upload CSV or use a template. Injects bias &amp; scores 8+ fairness metrics instantly.</p></div>
+            <div class="feature-card" onclick="goPage('heatmap')"><div class="feature-icon" style="background:var(--green-dim);color:var(--green)"></div><h3>Bias Heatmap</h3><p>Color-coded demographic × metric matrix. Spot the worst-affected groups at a glance.</p></div>
+            <div class="feature-card" onclick="goPage('training')"><div class="feature-icon" style="background:var(--blue-dim);color:var(--blue)"></div><h3>RL Training</h3><p>PPO agent debiases in real-time. Live reward &amp; bias curves, before/after comparison.</p></div>
+            <div class="feature-card" onclick="goPage('mitigate')"><div class="feature-icon" style="background:var(--red-dim);color:var(--red)"></div><h3>Mitigation Engine</h3><p>5 strategies: reweighting, threshold adj., proxy removal, adversarial &amp; calibration.</p></div>
+            <div class="feature-card" onclick="goPage('whatif')"><div class="feature-icon" style="background:var(--purple-dim);color:var(--purple)"></div><h3>What-If / XAI</h3><p>Flip one protected attribute — see if the decision changes. Gemini explanation included.</p></div>
+            <div class="feature-card" onclick="goPage('monitoring')"><div class="feature-icon" style="background:var(--accent-dim);color:var(--accent2)"></div><h3>Drift Monitor</h3><p>Track bias drift over time. Simulate production drift &amp; receive automated alerts.</p></div>
+            <div class="feature-card" onclick="goPage('policies')"><div class="feature-icon" style="background:var(--amber-dim);color:var(--amber)"></div><h3>Policy Compliance</h3><p>12 legal checks: Title VII, ECOA, ADA, EU AI Act. Pass/Fail with legal citations.</p></div>
+            <div class="feature-card" onclick="goPage('policyeditor')"><div class="feature-icon" style="background:var(--blue-dim);color:var(--blue)"></div><h3>Policy Editor</h3><p>Write custom fairness guardrails as code. YAML preview &amp; live evaluation.</p></div>
+            <div class="feature-card" onclick="goPage('trail')"><div class="feature-icon" style="background:var(--green-dim);color:var(--green)"></div><h3>Audit Trail</h3><p>Cryptographic blockchain-style log. Verify integrity &amp; demo tamper detection.</p></div>
+            <div class="feature-card" onclick="goPage('report')"><div class="feature-icon" style="background:var(--amber-dim);color:var(--amber)"></div><h3>Report Card</h3><p>A–F letter grade, radar chart breakdown, Gemini narrative &amp; PDF export.</p></div>
+            <div class="feature-card" onclick="goPage('benchmark')"><div class="feature-icon" style="background:var(--purple-dim);color:var(--purple)"></div><h3>Benchmark</h3><p>Compare GPT-4o, Claude, Gemini &amp; more on 50 standardised bias test prompts.</p></div>
+            <div class="feature-card" onclick="goPage('shadowai')"><div class="feature-icon" style="background:var(--red-dim);color:var(--red)"></div><h3>Shadow AI</h3><p>Detect unsanctioned AI-generated content. Identifies Claude, GPT &amp; Gemini signatures.</p></div>
+          </div>
+        </div>
+
+        <!-- Live audit insights (visible only after audit) -->
+        <div id="dash-content" style="display:none;margin-top:8px;padding-top:28px;border-top:1px solid var(--border)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+            <div>
+              <div style="font-family:var(--ff-h);font-size:16px;font-weight:700;color:var(--text)">Last Audit Results</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:3px">Run <span id="dash-run-id-display" style="font-family:var(--ff-m);color:var(--accent)"></span></div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-dark btn-sm" onclick="goPage('report')">Full Report</button>
+              <button class="btn btn-accent btn-sm" onclick="goPage('mitigate')">Fix Bias</button>
+            </div>
+          </div>
+          <div class="col-4" id="dash-metrics" style="margin-bottom:14px"></div>
+          <div class="col-2" style="margin-bottom:14px">
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--accent)"></span>Score Breakdown</div><div class="chartbox" style="height:200px"><canvas id="dash-chart1"></canvas></div></div>
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--red)"></span>Fairness Metrics</div><div class="chartbox" style="height:200px"><canvas id="dash-chart2"></canvas></div></div>
+          </div>
+          <div class="col-2">
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--red)"></span>Violations</div><div id="dash-violations"></div></div>
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--accent)"></span>AI Narrative</div>
+              <div class="ai-box"><div class="ai-head"><div class="ai-icon"></div><span style="font-size:12px;font-weight:500">Gemini 1.5 Flash</span></div><div class="ai-text" id="dash-narrative">—</div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- "?"?"? AUDIT "?"?"? -->
+    <section class="page" id="page-audit">
+      <div class="app-page">
+        <div class="page-head"><h1>Audit</h1><p>Upload a dataset, configure parameters, and run the full fairness pipeline</p></div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-accent-line"></div>
+          <div class="card-head"><span class="card-head-dot" style="background:var(--accent)"></span>Dataset Configuration</div>
+          <div class="row">
+            <div style="flex:2;min-width:260px">
+              <div class="upload" id="drop-zone" onclick="document.getElementById('csv-file').click()" data-testid="upload-zone">
+                <div class="upload-t" id="drop-text">Drop CSV file here or click to browse</div>
+                <div class="upload-s" id="drop-sub">Hiring, loan, medical, intersectional datasets</div>
+              </div>
+              <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="onFileSelected(this)"/>
+            </div>
+            <div style="flex:1;min-width:220px">
+              <div class="fg"><label>Domain</label><select id="domain-select"><option value="hiring">Hiring</option><option value="loan">Loan / Finance</option><option value="medical">Medical</option><option value="intersectional">Intersectional</option></select></div>
+              <div class="fg"><label>Sensitive Columns</label><input type="text" id="sensitive-cols" value="gender,race" placeholder="gender,race,age_group"/></div>
+              <div class="fg"><label>Target Column <span style="color:var(--text3);text-transform:none">(blank = last col)</span></label><input type="text" id="target-col" placeholder="hired / approved / high_risk"/></div>
+              <button class="btn btn-accent" style="width:100%" id="audit-btn" onclick="runAudit()" data-testid="run-audit-btn">
+                <span id="audit-icon"></span>
+                <span id="audit-text">Run Fairness Audit</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div id="audit-results" style="display:none">
+          <div id="csv-verdict-banner" style="display:none;margin-bottom:14px;padding:16px 20px;border-radius:12px;border:1px solid rgba(255,255,255,.06)">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+              <span id="csv-verdict-emoji" style="font-size:28px"></span>
+              <div>
+                <div id="csv-verdict-label" style="font-family:var(--ff-h);font-size:16px;font-weight:700"></div>
+                <div id="csv-verdict-file" style="font-size:10px;color:var(--text3)"></div>
+              </div>
+            </div>
+            <div id="csv-verdict-detail" style="font-size:12px;line-height:1.6;color:var(--text2)"></div>
+            <div id="csv-verdict-findings" style="margin-top:10px"></div>
+          </div>
+          <div class="col-4" id="metric-cards" style="margin-bottom:14px"></div>
+          <div class="col-2" style="margin-bottom:14px">
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--blue)"></span>Audit Score Breakdown</div><div class="chartbox" style="height:200px"><canvas id="chart-grader"></canvas></div></div>
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--red)"></span>Fairness Metrics</div><div class="chartbox" style="height:200px"><canvas id="chart-metrics"></canvas></div></div>
+          </div>
+          <div class="col-2" style="margin-bottom:14px">
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--red)"></span>Policy Violations</div><div id="violations-list"></div></div>
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--accent)"></span>Gemini AI Narrative</div><div class="ai-box"><div class="ai-text" id="gemini-narrative">Awaiting audit…</div></div></div>
+          </div>
+          <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--amber)"></span>Adversary Bias Injected</div><div id="bias-info" style="font-size:12px;color:var(--text2)"></div></div>
+        </div>
+        <div id="audit-empty" class="empty" style="margin-top:40px">
+          <h3>No audit run yet</h3><p>Upload a CSV above or use a sample dataset</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- "?"?"? HEATMAP "?"?"? -->
+    <section class="page" id="page-heatmap">
+      <div class="app-page">
+        <div class="page-head"><h1>Bias Heatmap</h1><p>Cross-group fairness visualization -- demographic groups × metrics</p></div>
+        <div id="heatmap-empty" class="empty"><h3>No heatmap data</h3><p>Run an audit first to generate the heatmap</p><button class="btn btn-dark" style="margin-top:14px" onclick="goPage('audit')">Go to Audit</button></div>
+        <div id="heatmap-content" style="display:none">
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-accent-line"></div>
+            <div class="card-head"><span class="card-head-dot" style="background:var(--green)"></span>Acceptance Rate by Demographic Group</div>
+            <div style="margin-bottom:12px;font-size:11px;color:var(--text3);display:flex;gap:16px">
+              <span><span style="color:var(--green)">●</span> &gt;70%</span><span><span style="color:var(--amber)">●</span> 50–70%</span><span><span style="color:var(--red)">●</span> &lt;50%</span>
+            </div>
+            <div id="hmap-header" style="display:grid;gap:6px;margin-bottom:6px"></div>
+            <div id="hmap-grid" style="display:grid;gap:6px"></div>
+          </div>
+          <div class="col-2">
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--blue)"></span>Acceptance Rate per Group</div><div class="chartbox" style="height:220px"><canvas id="chart-heatmap-bar"></canvas></div></div>
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--amber)"></span>TPR vs FPR by Group</div><div class="chartbox" style="height:220px"><canvas id="chart-tpr-fpr"></canvas></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- "?"?"? TRAINING "?"?"? -->
+    <section class="page" id="page-training">
+      <div class="app-page">
+        <div class="page-head"><h1>RL Training</h1><p>PPO-based reinforcement learning to reduce bias while preserving accuracy</p></div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-accent-line"></div>
+          <div class="row" style="align-items:flex-end;margin-bottom:0">
+            <div><label style="display:block;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;font-family:var(--ff-h);font-weight:600">Episodes</label><input type="number" id="train-episodes" value="50" min="10" max="200" style="width:90px"/></div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-accent" id="train-btn" onclick="startTraining()" data-testid="train-start-btn">Start PPO Training</button>
+              <button class="btn btn-dark" onclick="resetTraining()">Reset</button>
+            </div>
+            <div style="display:flex;gap:28px;justify-content:flex-end;flex:1">
+              <div style="text-align:center"><div class="snum" id="ep-counter">—</div><div class="slbl">Episode</div></div>
+              <div style="text-align:center"><div class="snum" id="reward-counter" style="color:var(--green)">—</div><div class="slbl">Reward</div></div>
+              <div style="text-align:center"><div class="snum" id="bias-counter" style="color:var(--red)">—</div><div class="slbl">Bias</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:11px"><span style="color:var(--text3)">Training Progress</span><span id="train-progress-text" style="color:var(--text2);font-family:var(--ff-m)">0 / 0</span></div>
+          <div class="ptrack"><div class="pfill" id="train-progress-fill" style="width:0%;background:linear-gradient(90deg,var(--accent),var(--blue))"></div></div>
+        </div>
+        <div class="col-2" style="margin-bottom:14px">
+          <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--green)"></span>Reward over Episodes</div><div class="chartbox" style="height:180px"><canvas id="chart-reward"></canvas></div></div>
+          <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--red)"></span>Bias Score over Episodes</div><div class="chartbox" style="height:180px"><canvas id="chart-bias-train"></canvas></div></div>
+        </div>
+        <div class="card" style="margin-bottom:14px"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--accent)"></span>Before vs After PPO Training</div><div class="chartbox" style="height:200px"><canvas id="chart-before-after"></canvas></div></div>
+        <div class="card">
+          <div class="card-accent-line"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div class="card-head" style="margin-bottom:0"><span class="card-head-dot" style="background:var(--text3)"></span>Training Log</div>
+            <button class="btn btn-dark btn-sm" onclick="document.getElementById('training-log').textContent=''">Clear</button>
+          </div>
+          <div class="term" id="training-log">Waiting for training to start…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- "?"?"? POLICIES "?"?"? -->
+    <section class="page" id="page-policies">
+      <div class="app-page">
+        <div class="page-head"><h1>Fairness Policies</h1><p>12 legal and ethical fairness rules checked against your model</p></div>
+        <div class="row" style="margin-bottom:14px;align-items:center">
+          <select id="policy-filter-domain" onchange="filterPolicies()" style="width:150px"><option value="all">All Domains</option><option value="hiring">Hiring</option><option value="finance">Finance</option><option value="medical">Medical</option></select>
+          <select id="policy-filter-status" onchange="filterPolicies()" style="width:150px"><option value="all">All Status</option><option value="fail">Failing Only</option><option value="pass">Passing Only</option></select>
+          <div style="margin-left:auto;font-size:11px;color:var(--text3)" id="policy-summary">Load an audit to check policies</div>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="card-accent-line"></div>
+          <table><thead><tr><th style="padding-left:16px">ID</th><th>Policy Name</th><th>Domain</th><th>Severity</th><th>Metric Value</th><th>Threshold</th><th style="padding-right:16px">Status</th></tr></thead><tbody id="policies-tbody"><tr><td colspan="7" style="text-align:center;padding:36px;color:var(--text3)">Run an audit to see policy results</td></tr></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- "?"?"? REPORT "?"?"? -->
+    <section class="page" id="page-report">
+      <div class="app-page">
+        <div class="page-head"><h1>Report Card</h1><p>Full fairness audit report with letter grade and compliance summary</p></div>
+        <div id="report-empty" class="empty"><h3>No report generated</h3><p>Run an audit to generate the fairness report card</p><button class="btn btn-dark" style="margin-top:14px" onclick="goPage('audit')">Go to Audit</button></div>
+        <div id="report-content" style="display:none">
+          <div class="col-2" style="margin-bottom:14px">
+            <div class="card" style="display:flex;align-items:center;gap:24px;padding:24px">
+              <div class="card-accent-line"></div>
+              <div class="grade-ring" id="grade-ring">—</div>
+              <div style="flex:1">
+                <div style="font-size:11px;color:var(--text3);margin-bottom:6px">Overall Score</div>
+                <div style="font-size:40px;font-weight:300;font-family:var(--ff-m);letter-spacing:-1.2px;color:var(--text)" id="report-score">—</div>
+                <div style="font-size:11px;margin-top:10px" id="report-verdict"></div>
+                <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+                  <button class="btn btn-accent btn-sm" onclick="exportPDF()">Export PDF</button>
+                  <button class="btn btn-dark btn-sm" onclick="loadReport()">Refresh</button>
+                </div>
+              </div>
+            </div>
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--blue)"></span>Score Breakdown (Radar)</div><div class="chartbox" style="height:200px"><canvas id="chart-radar"></canvas></div></div>
+          </div>
+          <div class="card" style="margin-bottom:14px"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--accent)"></span>Sub-scores</div><div id="report-score-bars"></div></div>
+          <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--accent)"></span>AI Audit Narrative</div>
+            <div class="ai-box"><div class="ai-head"><div class="ai-icon"></div><span style="font-size:12px;font-weight:500">Gemini -- Executive Summary</span></div><div class="ai-text" id="report-narrative" style="font-size:12px;line-height:1.85"></div></div>
+          </div>
+          <div id="print-area" style="display:none"><h1 style="color:#1e293b">DWESH -- Fairness Audit Report</h1><p id="print-meta" style="color:#64748b;font-size:14px"></p><hr><h2 id="print-grade-text" style="color:#0ea5e9"></h2><pre id="print-narrative" style="white-space:pre-wrap;font-family:sans-serif;color:#334155;font-size:13px;line-height:1.7"></pre></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- "?"?"? MITIGATE "?"?"? -->
+    <section class="page" id="page-mitigate">
+      <div class="app-page">
+        <div class="page-head"><h1>Mitigation Engine</h1><p>Apply bias-fixing strategies and see projected improvement</p></div>
+        <div id="mitigate-empty" class="empty"><h3>No suggestions yet</h3><p>Run an audit to generate tailored mitigation strategies</p><button class="btn btn-dark" style="margin-top:14px" onclick="goPage('audit')">Run Audit</button></div>
+        <div id="mitigate-content" style="display:none">
+          <div class="col-2">
+            <div class="stack">
+              <div class="card">
+                <div class="card-accent-line"></div>
+                <div class="card-head"><span class="card-head-dot" style="background:var(--accent)"></span>Mitigation Strategy</div>
+                <div class="fg"><label>Strategy</label><select id="strategy-select"><option value="reweighting">Sample Reweighting</option><option value="threshold_adjustment">Threshold Adjustment</option><option value="proxy_removal">Proxy Feature Removal</option><option value="adversarial_debiasing">Adversarial Debiasing</option><option value="calibration">Calibration by Group</option></select></div>
+                <div class="fg"><label>Strength: <span id="strength-val" style="color:var(--accent);font-family:var(--ff-m)">0.7</span></label><input type="range" id="strength-slider" min="0.1" max="1.0" step="0.1" value="0.7" oninput="document.getElementById('strength-val').textContent=this.value"/></div>
+                <button class="btn btn-accent" style="width:100%" onclick="applyMitigation()" id="mitigate-btn" data-testid="apply-mitigation-btn">Apply Mitigation</button>
+              </div>
+              <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--blue)"></span>Recommended Strategies</div><div id="suggestions-list"></div></div>
+            </div>
+            <div class="stack">
+              <div class="card" style="display:none" id="mitigation-results"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--green)"></span>Before vs After</div><div class="chartbox" style="height:220px"><canvas id="chart-mitigate"></canvas></div></div>
+              <div class="card" style="display:none" id="mitigation-metrics-card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--amber)"></span>Metric Changes</div><div id="mitigation-metrics-table"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- "?"?"? WHAT-IF "?"?"? -->
+    <section class="page" id="page-whatif">
+      <div class="app-page">
+        <div class="page-head"><h1>What-If Explorer</h1><p>Change one protected attribute and see how the model decision flips</p></div>
+        <div class="col-2">
+          <div class="stack">
+            <div class="card">
+              <div class="card-accent-line"></div>
+              <div class="card-head"><span class="card-head-dot" style="background:var(--blue)"></span>Individual Profile</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div class="fg"><label>Gender</label><select id="wi-gender"><option value="0">Male</option><option value="1">Female</option></select></div>
+                <div class="fg"><label>Race</label><select id="wi-race"><option value="0">White</option><option value="1">Black</option><option value="2">Hispanic</option><option value="3">Asian</option></select></div>
+                <div class="fg"><label>Age</label><input type="number" id="wi-age" value="35" min="18" max="70"/></div>
+                <div class="fg"><label>Income</label><input type="number" id="wi-income" value="65000"/></div>
+              </div>
+              <div class="fg" style="margin-top:4px"><label>Counterfactual: change</label><select id="wi-cf-attr"><option value="gender">Gender</option><option value="race">Race</option><option value="age">Age</option></select></div>
+              <button class="btn btn-accent" style="width:100%;margin-top:4px" onclick="runCounterfactual()" data-testid="run-counterfactual-btn">Analyze Counterfactual</button>
+            </div>
+            <div class="card" id="decision-card" style="display:none">
+              <div class="card-accent-line"></div>
+              <div class="card-head"><span class="card-head-dot" style="background:var(--accent)"></span>Decision</div>
+              <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+                <div style="text-align:center"><div style="font-size:10px;color:var(--text3);margin-bottom:7px">Original</div><div id="decision-original"></div><div style="font-size:10px;color:var(--text3);margin-top:5px" id="prob-original"></div></div>
+                <div style="font-size:22px;color:var(--text3)"></div>
+                <div style="text-align:center"><div style="font-size:10px;color:var(--text3);margin-bottom:7px">Counterfactual</div><div id="decision-cf"></div><div style="font-size:10px;color:var(--text3);margin-top:5px" id="prob-cf"></div></div>
+                <div style="margin-left:auto;text-align:center" id="flip-indicator"></div>
+              </div>
+            </div>
+          </div>
+          <div class="stack">
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--blue)"></span>All Group Outcomes</div><div id="group-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px"></div></div>
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--accent)"></span>Gemini Counterfactual Explanation</div>
+              <div class="ai-box"><div class="ai-head"><div class="ai-icon"></div><span style="font-size:12px;font-weight:500">Counterfactual Analysis</span></div><div class="ai-text" id="cf-explanation">Run analysis above to get AI explanation…</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- "?"?"? MONITORING "?"?"? -->
+    <section class="page" id="page-monitoring">
+      <div class="app-page">
+        <div class="page-head"><h1>Drift Monitoring</h1><p>Real-time fairness drift detection and production observability</p></div>
+        <div class="row" style="margin-bottom:14px;align-items:center;gap:10px">
+          <button class="btn btn-accent" onclick="loadDrift()" id="drift-refresh-btn">Refresh</button>
+          <button class="btn btn-dark" onclick="simulateDrift()" id="drift-sim-btn">Simulate Drift</button>
+          <button class="btn btn-ghost btn-sm" onclick="resetDrift()">Reset</button>
+          <span id="drift-injected-badge" style="display:none" class="tag tag-no">âš  Drift Injected</span>
+        </div>
+        <div class="col-3" id="drift-baseline-cards" style="margin-bottom:14px"></div>
+        <div class="col-2" style="margin-bottom:14px">
+          <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--blue)"></span>Disparate Impact Ratio over Time</div><div class="chartbox" style="height:200px"><canvas id="chart-drift-di"></canvas></div></div>
+          <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--red)"></span>Overall Bias Score over Time</div><div class="chartbox" style="height:200px"><canvas id="chart-drift-bias"></canvas></div></div>
+        </div>
+        <div class="card" id="drift-alerts-card" style="margin-bottom:14px;display:none"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--red)"></span>Active Alerts</div><div id="drift-alerts-list"></div></div>
+        <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--text3)"></span>Feature Distribution Comparison (Training vs Production)</div>
+          <div class="col-2"><div class="chartbox" style="height:180px"><canvas id="chart-drift-dist1"></canvas></div><div class="chartbox" style="height:180px"><canvas id="chart-drift-dist2"></canvas></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- "?"?"? AUDIT TRAIL "?"?"? -->
+    <section class="page" id="page-trail">
+      <div class="app-page">
+        <div class="page-head"><h1>Audit Trail</h1><p>Cryptographically verifiable, tamper-evident audit log</p></div>
+        <div class="row" style="margin-bottom:14px;align-items:center;gap:10px">
+          <button class="btn btn-accent" onclick="loadTrail()" id="trail-load-btn">Load Trail</button>
+          <button class="btn btn-dark" onclick="verifyTrail()" id="trail-verify-btn">Verify Integrity</button>
+          <button class="btn btn-ghost btn-sm" onclick="tamperDemo()" style="color:var(--red);border-color:var(--red-border)">Demo: Tamper Entry</button>
+          <div style="margin-left:auto;font-size:11px;color:var(--text3)" id="trail-count">No entries loaded</div>
+        </div>
+        <div id="trail-verify-result" style="display:none;margin-bottom:14px"></div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="card-accent-line"></div>
+          <table><thead><tr><th style="padding-left:14px">#</th><th>Trace ID</th><th>Event</th><th>Timestamp</th><th>Data</th><th style="padding-right:14px">Chain Hash</th></tr></thead><tbody id="trail-tbody"><tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text3)">Click "Load Trail" to view audit log</td></tr></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- "?"?"? BENCHMARK "?"?"? -->
+    <section class="page" id="page-benchmark">
+      <div class="app-page">
+        <div class="page-head"><h1>Model Benchmark</h1><p>Compare fairness scores across AI models on 50 standardized bias test prompts</p></div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-accent-line"></div>
+          <div class="card-head"><span class="card-head-dot" style="background:var(--accent)"></span>Select Models to Compare</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px" id="model-chips">
+            <span class="chip" style="color:var(--green);border-color:var(--green-border)" data-model="gpt-4o" onclick="toggleModel(this)">GPT-4o</span>
+            <span class="chip" style="color:var(--accent);border-color:var(--accent-border)" data-model="claude-3.5-sonnet" onclick="toggleModel(this)">Claude 3.5 Sonnet</span>
+            <span class="chip" style="color:var(--blue);border-color:var(--blue-border)" data-model="gemini-1.5-pro" onclick="toggleModel(this)">Gemini 1.5 Pro</span>
+            <span class="chip" style="color:var(--amber);border-color:var(--amber-border)" data-model="llama-3.1-70b" onclick="toggleModel(this)">Llama 3.1 70B</span>
+            <span class="chip" style="color:var(--purple);border-color:var(--purple-border)" data-model="mistral-large" onclick="toggleModel(this)">Mistral Large</span>
+          </div>
+          <div class="fg"><label>Domain</label><select id="bench-domain" style="max-width:200px"><option value="hiring">Hiring</option><option value="loan">Finance</option><option value="medical">Medical</option></select></div>
+          <button class="btn btn-accent" onclick="runBenchmark()" id="bench-btn">Run Benchmark</button>
+        </div>
+        <div id="bench-results" style="display:none">
+          <div id="bench-leaderboard" style="margin-bottom:14px"></div>
+          <div class="col-2">
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--green)"></span>Overall Fairness Leaderboard</div><div class="chartbox" style="height:220px"><canvas id="chart-bench-overall"></canvas></div></div>
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--blue)"></span>Bias by Dimension</div><div class="chartbox" style="height:220px"><canvas id="chart-bench-dims"></canvas></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- "?"?"? POLICY EDITOR "?"?"? -->
+    <section class="page" id="page-policyeditor">
+      <div class="app-page">
+        <div class="page-head"><h1>Policy-as-Code Editor</h1><p>Define, edit, and enforce programmable fairness guardrails</p></div>
+        <div class="col-2">
+          <div class="stack">
+            <div class="card">
+              <div class="card-accent-line"></div>
+              <div class="card-head"><span class="card-head-dot" style="background:var(--accent)"></span>Active Rules</div>
+              <div id="policy-rules-list"></div>
+              <button class="btn btn-dark" style="margin-top:12px;width:100%" onclick="addPolicyRule()">Add Rule</button>
+            </div>
+            <div class="card">
+              <div class="card-accent-line"></div>
+              <div class="card-head"><span class="card-head-dot" style="background:var(--blue)"></span>Actions</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-accent" onclick="savePolicyRules()" id="policy-save-btn">Save Rules</button>
+                <button class="btn btn-dark" onclick="evaluatePolicyRules()" id="policy-eval-btn" disabled>Evaluate vs Run</button>
+                <button class="btn btn-ghost btn-sm" onclick="resetPolicyRules()">Reset Defaults</button>
+              </div>
+            </div>
+          </div>
+          <div class="stack">
+            <div class="card">
+              <div class="card-accent-line"></div>
+              <div class="card-head"><span class="card-head-dot" style="background:var(--amber)"></span>YAML Preview</div>
+              <div style="background:#020408;border:1px solid var(--border);border-radius:10px;padding:14px;font-family:var(--ff-m);font-size:11px;color:#4ade80;overflow-y:auto;max-height:280px;white-space:pre" id="policy-yaml-preview">Load rules to see YAML…</div>
+            </div>
+            <div class="card" id="policy-eval-results" style="display:none"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--green)"></span>Evaluation Result</div><div id="policy-eval-content"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- "?"?"? SHADOW AI "?"?"? -->
+    <section class="page" id="page-shadowai">
+      <div class="app-page">
+        <div class="page-head"><h1>Shadow AI Detector</h1><p>Scan text to detect unsanctioned AI-generated content</p></div>
+        <div class="col-2">
+          <div class="stack">
+            <div class="card">
+              <div class="card-accent-line"></div>
+              <div class="card-head"><span class="card-head-dot" style="background:var(--blue)"></span>Text Input</div>
+              <textarea id="shadow-input" style="width:100%;height:200px;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:var(--ff-b);font-size:12.5px;padding:10px;resize:vertical" placeholder="Paste an email, chat message, or document to scan for AI hallmarks…"></textarea>
+              <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+                <button class="btn btn-accent" onclick="runShadowScan()" id="shadow-btn">Scan for Shadow AI</button>
+                <button class="btn btn-dark btn-sm" onclick="loadShadowSample('claude')">Sample: Claude</button>
+                <button class="btn btn-dark btn-sm" onclick="loadShadowSample('gpt')">Sample: GPT</button>
+                <button class="btn btn-dark btn-sm" onclick="loadShadowSample('human')">Sample: Human</button>
+              </div>
+            </div>
+          </div>
+          <div class="stack">
+            <div class="card" id="shadow-result-card" style="display:none">
+              <div class="card-accent-line"></div>
+              <div class="card-head"><span class="card-head-dot" style="background:var(--accent)"></span>Detection Result</div>
+              <div style="text-align:center;padding:20px 0 14px">
+                <div id="shadow-verdict-icon" style="font-size:44px;margin-bottom:8px"></div>
+                <div id="shadow-verdict" style="font-family:var(--ff-h);font-size:22px;font-weight:700;letter-spacing:-.4px"></div>
+                <div id="shadow-confidence" style="font-size:12px;color:var(--text3);margin-top:4px"></div>
+              </div>
+              <div id="shadow-score-bars" style="margin-top:10px"></div>
+            </div>
+            <div class="card" id="shadow-indicators-card" style="display:none">
+              <div class="card-accent-line"></div>
+              <div class="card-head"><span class="card-head-dot" style="background:var(--amber)"></span>Detected Indicators</div>
+              <div id="shadow-indicators-list"></div>
+              <div style="margin-top:12px;font-size:10.5px;color:var(--text3)" id="shadow-structural"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- "?"?"? LPS SIMULATOR "?"?"? -->
+    <section class="page" id="page-lps">
+      <div class="app-page">
+        <div class="page-head"><h1>Longitudinal Policy Search</h1><p>Simulate how bias evolves over years when AI decisions create feedback loops in the population</p></div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-accent-line"></div>
+          <div class="card-head"><span class="card-head-dot" style="background:var(--purple)"></span>Simulation Configuration</div>
+          <div class="row" style="align-items:flex-end;gap:14px;flex-wrap:wrap">
+            <div class="fg" style="margin-bottom:0"><label>Domain</label><select id="lps-domain"><option value="hiring">Hiring</option><option value="loan">Loan / Finance</option><option value="medical">Medical</option><option value="intersectional">Intersectional</option></select></div>
+            <div class="fg" style="margin-bottom:0"><label>Years</label><input type="number" id="lps-years" value="10" min="3" max="20" style="width:80px"/></div>
+            <button class="btn btn-accent" onclick="runLPS()" id="lps-btn">Run 10-Year Simulation</button>
+            <button class="btn btn-dark" onclick="runLPSCompare()" id="lps-compare-btn">Compare All Strategies</button>
+          </div>
+        </div>
+        <div id="lps-results" style="display:none">
+          <div class="col-3" style="margin-bottom:14px" id="lps-metric-cards"></div>
+          <div class="col-2" style="margin-bottom:14px">
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--blue)"></span>Disparate Impact Ratio over Time</div><div class="chartbox" style="height:220px"><canvas id="chart-lps-di"></canvas></div></div>
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--red)"></span>Bias Score over Time</div><div class="chartbox" style="height:220px"><canvas id="chart-lps-bias"></canvas></div></div>
+          </div>
+          <div class="card" style="margin-bottom:14px"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--green)"></span>Year-by-Year Trajectory</div>
+            <div style="overflow-x:auto;"><table><thead><tr><th>Year</th><th>DI Ratio</th><th>DPD</th><th>Bias Score</th><th>Accuracy</th><th>Events</th><th>Status</th></tr></thead><tbody id="lps-table-body"></tbody></table></div>
+          </div>
+          <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--accent)"></span>LPS Policy Recommendation</div>
+            <div class="ai-box"><div class="ai-head"><div class="ai-icon"></div><span style="font-size:12px;font-weight:500">Decision Twin Engine</span></div><div class="ai-text" id="lps-recommendation">Run a simulation to see policy recommendations…</div></div>
+          </div>
+        </div>
+        <div id="lps-compare-results" style="display:none;margin-top:14px">
+          <div class="card" style="margin-bottom:14px"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--purple)"></span>Strategy Comparison -- DI Ratio over Time</div><div class="chartbox" style="height:260px"><canvas id="chart-lps-compare"></canvas></div></div>
+          <div id="lps-compare-leaderboard"></div>
+          <div class="card" style="margin-top:14px"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--accent)"></span>Conclusion</div><div class="ai-box"><div class="ai-head"><div class="ai-icon"></div><span style="font-size:12px;font-weight:500">Longitudinal Analysis</span></div><div class="ai-text" id="lps-compare-conclusion"></div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- "?"?"? PARALLEL UNIVERSES "?"?"? -->
+    <section class="page" id="page-universes">
+      <div class="app-page">
+        <div class="page-head"><h1>Causal Parallel Universes</h1><p>Fork reality into two simulations -- prove which mitigation actually helps the discriminated group long-term</p></div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-accent-line"></div>
+          <div class="card-head"><span class="card-head-dot" style="background:var(--blue)"></span>Configure Parallel Universes</div>
+          <div class="row" style="align-items:flex-end;gap:14px;flex-wrap:wrap">
+            <div class="fg" style="margin-bottom:0"><label>Domain</label><select id="pu-domain"><option value="hiring">Hiring</option><option value="loan">Loan</option><option value="medical">Medical</option><option value="intersectional">Intersectional</option></select></div>
+            <div class="fg" style="margin-bottom:0"><label>Universe A</label><select id="pu-strat-a"><option value="drop_feature">Drop Proxy Feature</option><option value="reweight_samples">Reweight Samples</option><option value="threshold_per_group">Per-Group Thresholds</option><option value="adversarial_debiasing">Adversarial Debiasing</option><option value="dynamic_lps">Dynamic LPS (Ours)</option></select></div>
+            <div class="fg" style="margin-bottom:0"><label>Universe B</label><select id="pu-strat-b"><option value="reweight_samples">Reweight Samples</option><option value="drop_feature">Drop Proxy Feature</option><option value="threshold_per_group">Per-Group Thresholds</option><option value="adversarial_debiasing">Adversarial Debiasing</option><option value="dynamic_lps">Dynamic LPS (Ours)</option></select></div>
+            <div class="fg" style="margin-bottom:0"><label>Years</label><input type="number" id="pu-years" value="10" min="3" max="20" style="width:80px"/></div>
+            <button class="btn btn-accent" onclick="runParallelUniverses()" id="pu-btn">Fork Reality</button>
+          </div>
+        </div>
+        <div id="pu-results" style="display:none">
+          <div class="col-2" style="margin-bottom:14px">
+            <div class="card" style="text-align:center;padding:24px"><div class="card-accent-line"></div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Universe A</div><div id="pu-label-a" style="font-family:var(--ff-h);font-size:16px;font-weight:700;color:var(--accent);margin-bottom:6px"></div><div id="pu-desc-a" style="font-size:11px;color:var(--text3);margin-bottom:12px"></div><div style="display:flex;gap:18px;justify-content:center"><div><div class="snum" id="pu-di-a">—</div><div class="slbl">Final DI</div></div><div><div class="snum" id="pu-bias-a" style="color:var(--red)">—</div><div class="slbl">Bias</div></div><div><div class="snum" id="pu-acc-a" style="color:var(--green)">—</div><div class="slbl">Accuracy</div></div></div></div>
+            <div class="card" style="text-align:center;padding:24px"><div class="card-accent-line"></div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Universe B</div><div id="pu-label-b" style="font-family:var(--ff-h);font-size:16px;font-weight:700;color:var(--blue);margin-bottom:6px"></div><div id="pu-desc-b" style="font-size:11px;color:var(--text3);margin-bottom:12px"></div><div style="display:flex;gap:18px;justify-content:center"><div><div class="snum" id="pu-di-b">—</div><div class="slbl">Final DI</div></div><div><div class="snum" id="pu-bias-b" style="color:var(--red)">—</div><div class="slbl">Bias</div></div><div><div class="snum" id="pu-acc-b" style="color:var(--green)">—</div><div class="slbl">Accuracy</div></div></div></div>
+          </div>
+          <div class="col-2" style="margin-bottom:14px">
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--accent)"></span>DI Ratio -- Universe -- vs B</div><div class="chartbox" style="height:220px"><canvas id="chart-pu-di"></canvas></div></div>
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--red)"></span>Bias Score — Universe -- vs B</div><div class="chartbox" style="height:220px"><canvas id="chart-pu-bias"></canvas></div></div>
+          </div>
+          <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--green)"></span>Causal Verdict</div>
+            <div class="ai-box"><div class="ai-head"><div class="ai-icon" style="background:linear-gradient(135deg,var(--green),var(--accent))"></div><span style="font-size:12px;font-weight:500">Causal Proof Engine</span></div><div class="ai-text" id="pu-verdict">Fork reality to see causal verdict…</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- "?"?"? COST ANALYSIS "?"?"? -->
+    <section class="page" id="page-costanalysis">
+      <div class="app-page">
+        <div class="page-head"><h1>Asymmetric Cost Analysis</h1><p>Standard tools assume FP and FN cost the same. We compute real-world harm per group.</p></div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-accent-line"></div>
+          <div class="row" style="align-items:flex-end;gap:14px">
+            <div class="fg" style="margin-bottom:0"><label>Domain</label><select id="cost-domain"><option value="hiring">Hiring</option><option value="loan">Loan / Finance</option><option value="medical">Medical</option><option value="intersectional">Intersectional</option></select></div>
+            <button class="btn btn-accent" onclick="runCostAnalysis()" id="cost-btn">Analyze Costs</button>
+          </div>
+        </div>
+        <div id="cost-results" style="display:none">
+          <div class="col-3" style="margin-bottom:14px" id="cost-summary-cards"></div>
+          <div class="col-2" style="margin-bottom:14px">
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--red)"></span>Weighted Harm vs Symmetric Harm by Group</div><div class="chartbox" style="height:240px"><canvas id="chart-cost-bars"></canvas></div></div>
+            <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--amber)"></span>Harm Underestimation % by Group</div><div class="chartbox" style="height:240px"><canvas id="chart-cost-underest"></canvas></div></div>
+          </div>
+          <div class="card" style="margin-bottom:14px;padding:0;overflow:hidden"><div class="card-accent-line"></div>
+            <table><thead><tr><th style="padding-left:16px">Group</th><th>FPR</th><th>FNR</th><th>FP Cost</th><th>FN Cost</th><th>Weighted Harm</th><th>Symmetric Harm</th><th style="padding-right:16px">Underestimate</th></tr></thead><tbody id="cost-table-body"></tbody></table>
+          </div>
+          <div class="card"><div class="card-accent-line"></div><div class="card-head"><span class="card-head-dot" style="background:var(--accent)"></span>Why This Matters</div>
+            <div class="ai-box"><div class="ai-head"><div class="ai-icon" style="background:linear-gradient(135deg,var(--red),var(--amber))"></div><span style="font-size:12px;font-weight:500">Asymmetric Impact Analysis</span></div><div class="ai-text" id="cost-explanation">Run analysis to see domain-specific impact explanation…</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- "?"?"? MODEL BIAS CHECKER PAGE "?"?"? -->
+    <section class="page" id="page-modelcheck">
+      <div class="app-page">
+        <div class="page-head"><h1>Model Bias Checker</h1><p>Upload a trained model (.pkl, .joblib) and test dataset to probe for hidden biases</p></div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-accent-line"></div>
+          <div class="card-head"><span class="card-head-dot" style="background:var(--purple)"></span>Upload Model & Test Data</div>
+          <div class="row" style="gap:14px">
+            <div style="flex:1;min-width:220px">
+              <div class="fg"><label>Trained Model File</label>
+                <div class="upload" style="min-height:80px" onclick="document.getElementById('model-file-input').click()">
+                  
+                  <div class="upload-t" id="model-file-text">Drop .pkl, .joblib, or .csv model</div>
+                  <div class="upload-s">Supports scikit-learn, XGBoost, LightGBM</div>
+                </div>
+                <input type="file" id="model-file-input" accept=".pkl,.joblib,.jbl,.csv,.pickle" style="display:none" onchange="onModelFileSelected(this,'model')">
+              </div>
+            </div>
+            <div style="flex:1;min-width:220px">
+              <div class="fg"><label>Test Dataset (CSV)</label>
+                <div class="upload" style="min-height:80px" onclick="document.getElementById('test-file-input').click()">
+                  
+                  <div class="upload-t" id="test-file-text">Drop test CSV with labels</div>
+                  <div class="upload-s">Must have target column + sensitive attributes</div>
+                </div>
+                <input type="file" id="test-file-input" accept=".csv" style="display:none" onchange="onModelFileSelected(this,'test')">
+              </div>
+            </div>
+            <div style="flex:0 0 200px;min-width:180px">
+              <div class="fg"><label>Sensitive Columns</label><input type="text" id="mc-sensitive" value="gender,race" placeholder="gender,race,age"></div>
+              <div class="fg"><label>Target Column</label><input type="text" id="mc-target" value="label" placeholder="label / outcome"></div>
+              <button class="btn btn-accent" style="width:100%;margin-top:4px" id="mc-btn" onclick="runModelCheck()">
+                
+                <span id="mc-btn-text">Run Bias Probe</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="mc-results" style="display:none">
+          <!-- Verdict Card -->
+          <div id="mc-verdict-card" class="card" style="margin-bottom:14px;padding:20px">
+            <div style="display:flex;align-items:center;gap:14px">
+              <span id="mc-verdict-emoji" style="font-size:36px"></span>
+              <div>
+                <div id="mc-verdict-label" style="font-family:var(--ff-h);font-size:20px;font-weight:700"></div>
+                <div id="mc-verdict-detail" style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.5"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Summary cards -->
+          <div class="col-4" id="mc-summary-cards" style="margin-bottom:14px"></div>
+          <!-- Tests Run -->
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-accent-line"></div>
+            <div class="card-head"><span class="card-head-dot" style="background:var(--blue)"></span>Bias Tests Executed</div>
+            <div id="mc-tests-list"></div>
+          </div>
+          <!-- Disparity Results -->
+          <div class="col-2" style="margin-bottom:14px">
+            <div class="card">
+              <div class="card-accent-line"></div>
+              <div class="card-head"><span class="card-head-dot" style="background:var(--red)"></span>Disparity by Attribute</div>
+              <div class="chartbox" style="height:220px"><canvas id="mc-disparity-chart"></canvas></div>
+            </div>
+            <div class="card">
+              <div class="card-accent-line"></div>
+              <div class="card-head"><span class="card-head-dot" style="background:var(--amber)"></span>Group Positive Rates</div>
+              <div class="chartbox" style="height:220px"><canvas id="mc-rates-chart"></canvas></div>
+            </div>
+          </div>
+          <!-- Group Details Table -->
+          <div class="card">
+            <div class="card-accent-line"></div>
+            <div class="card-head"><span class="card-head-dot" style="background:var(--green)"></span>Per-Group Breakdown</div>
+            <div id="mc-group-table" style="overflow-x:auto;"></div>
+          </div>
+        </div>
+
+        <div id="mc-empty" class="empty" style="margin-top:40px">
+          
+          <h3>No model checked yet</h3>
+          <p>Upload a trained model and test CSV above, or try with our sample data:</p>
+          <div class="chips" style="justify-content:center;margin-top:14px">
+            <button class="chip" style="color:var(--accent);border-color:var(--accent-border)" onclick="loadSampleModelCheck()">Use Sample CSV as Model Output</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /pages -->
+</main>
+
+<!-- Feature explainer modal removed -->
+</div><!-- /shell -->
+
+<div id="loader"><div class="spin"></div><span id="loader-text">Processing…</span></div>
+<div id="toast"></div>
+
+<style media="print">
+  body * {visibility:hidden}
+  #print-area,#print-area *{visibility:visible}
+  #print-area{position:absolute;left:0;top:0;color:#1e293b;font-family:sans-serif;padding:40px}
+</style>
+
+<script>
+window.onerror=function(msg,src,line){var t=document.getElementById('toast');if(t){t.innerHTML='<span style="color:var(--red)">●</span> JS Error: '+msg+' (line '+line+')';t.classList.add('show');setTimeout(function(){t.classList.remove('show')},6000)}console.error('JS ERROR:',msg,'line:',line);return false};
+const API=(window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1')?'http://127.0.0.1:8000':'';
+const S={runId:null,domain:'hiring',auditData:null,trainInt:null,charts:{},policies:[],suggestions:[]};
+
+const PAGE_TITLES={'home':'Home','dashboard':'Dashboard','audit':'Audit','modelcheck':'Model Checker','heatmap':'Bias Heatmap','training':'RL Training','policies':'Fairness Policies','report':'Report Card','mitigate':'Mitigation','whatif':'What-If Explorer','monitoring':'Drift Monitoring','trail':'Audit Trail','benchmark':'Benchmark','policyeditor':'Policy Editor','shadowai':'Shadow AI','lps':'LPS Simulator','universes':'Parallel Universes','costanalysis':'Cost Analysis'};
+
+window.goPage=function(p){
+  document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(e=>e.classList.remove('active'));
+  const pg=document.getElementById('page-'+p);
+  if(!pg){console.error('Page not found: page-'+p);return}
+  pg.classList.add('active');
+  const t=document.querySelector('.nav-tab[data-page="'+p+'"]');
+  if(t)t.classList.add('active');
+  const ti=PAGE_TITLES[p]||p;
+  const tbc=document.getElementById('topbar-current');
+  const tbt=document.getElementById('topbar-title');
+  if(tbc)tbc.textContent=ti;
+  if(tbt)tbt.textContent=ti;
+  if(p==='heatmap'&&S.runId)loadHeatmap();
+  if(p==='policies'&&S.runId)loadPolicies();
+  if(p==='report'&&S.runId)loadReport();
+  if(p==='mitigate'&&S.runId)loadMitigate();
+  if(p==='dashboard'){renderDashboard();checkApiStatus();}
+  if(p==='monitoring')loadDrift();
+  if(p==='trail')loadTrail();
+  if(p==='policyeditor')loadPolicyRules();
+  document.getElementById('pages').scrollTop=0;
+};
+
+document.addEventListener('DOMContentLoaded',()=>{
+  try{}catch(e){}
+  // Pre-warm: silently run a hiring audit so all pages have data on first visit
+  (async()=>{
+    try{
+      const fd=new FormData();
+      fd.append('domain','hiring');fd.append('sensitive_cols','gender,race');fd.append('target_col','hired');
+      // pre-warm without file
+      const r=await fetch(`${API}/api/audit`,{method:'POST',body:fd});
+      if(!r.ok)return;
+      const d=await r.json();
+      S.runId=d.run_id;S.domain=d.domain;S.auditData=d;S.suggestions=d.suggestions||[];
+      updateNav(d);
+      // Update domain quick-card to show "loaded"
+      const qc=document.getElementById('qcard-hiring');
+      if(qc){const b=qc.querySelector('.qcard-badge');if(b)b.textContent=' LOADED';}
+    }catch(e){/* backend not running yet */}
+  })();
+  checkApiStatus();
+});
+
+// Mouse-tracking gradient on cards
+document.addEventListener('mousemove',e=>{
+  document.querySelectorAll('.card').forEach(card=>{
+    const r=card.getBoundingClientRect();
+    card.style.setProperty('--mx',((e.clientX-r.left)/r.width*100)+'%');
+    card.style.setProperty('--my',((e.clientY-r.top)/r.height*100)+'%');
+  });
+});
+
+function toast(m,t='info'){const e=document.getElementById('toast'),c={info:'var(--blue)',success:'var(--green)',error:'var(--red)',warn:'var(--amber)'};e.innerHTML=`<strong style='color:${c[t]||c.info}'>[${t.toUpperCase()}]</strong> ${m}`;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),3200)}
+function showLoad(m){document.getElementById('loader-text').textContent=m;document.getElementById('loader').classList.add('vis')}
+function hideLoad(){document.getElementById('loader').classList.remove('vis')}
+
+let selFile=null;
+function onFileSelected(inp){const f=inp.files[0];if(!f)return;selFile=f;document.getElementById('drop-text').textContent=f.name;document.getElementById('drop-sub').textContent=(f.size/1024).toFixed(1)+' KB — Ready'}
+document.addEventListener('DOMContentLoaded',function(){
+  var dz=document.getElementById('drop-zone');
+  if(dz){
+    dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('over')});
+    dz.addEventListener('dragleave',function(){dz.classList.remove('over')});
+    dz.addEventListener('drop',function(e){e.preventDefault();dz.classList.remove('over');var f=e.dataTransfer.files[0];if(f&&f.name.endsWith('.csv')){selFile=f;document.getElementById('drop-text').textContent=f.name;document.getElementById('drop-sub').textContent=(f.size/1024).toFixed(1)+' KB — Ready'}});
+  }
+});
+
+async function loadSample(d){toast(`Loading ${d} sample…`,'info');document.getElementById('domain-select').value=d;document.getElementById('sensitive-cols').value='gender,race';const t={hiring:'hired',loan:'approved',medical:'high_risk',intersectional:'approved'};document.getElementById('target-col').value=t[d]||'';selFile=null;document.getElementById('drop-text').textContent=`${d}_sample.csv`;document.getElementById('drop-sub').textContent='Sample loaded';goPage('audit');await runAudit(d)}
+
+async function runAudit(forcedDomain){
+  const btn=document.getElementById('audit-btn'),ic=document.getElementById('audit-icon'),tx=document.getElementById('audit-text');
+  const domain=forcedDomain||document.getElementById('domain-select').value;
+  btn.disabled=true;ic.innerHTML='<div class="spin"></div>';tx.textContent='Running…';showLoad('Running fairness audit…');
+  try{
+    const fd=new FormData();
+    if(selFile)fd.append('file',selFile);
+    fd.append('domain',domain);fd.append('sensitive_cols',document.getElementById('sensitive-cols').value);fd.append('target_col',document.getElementById('target-col').value);
+    const r=await fetch(`${API}/api/audit`,{method:'POST',body:fd});
+    const d=await r.json();
+    S.runId=d.run_id;S.domain=d.domain;S.auditData=d;S.suggestions=d.suggestions||[];
+    renderAudit(d);updateNav(d);toast('Audit complete!','success');
+  }catch(e){toast('Error: '+e.message,'error')}
+  finally{hideLoad();btn.disabled=false;ic.innerHTML='';tx.textContent='Run Fairness Audit';}
+}
+
+function updateNav(d){
+  document.getElementById('nav-domain').textContent=d.domain.charAt(0).toUpperCase()+d.domain.slice(1);
+  document.getElementById('nav-status').classList.add('live');
+  const rb=document.getElementById('nav-run');rb.textContent=d.run_id;rb.style.display='block';
+  const sc=document.getElementById('topbar-status-chip');
+  if(sc)sc.innerHTML='<span style="color:var(--green)">Audit Complete</span>';
+  try{}catch(e){}
+}
+
+function renderAudit(d){
+  document.getElementById('audit-empty').style.display='none';document.getElementById('audit-results').style.display='block';
+  const m=d.metrics,g=d.grader;
+  const cards=[
+    {l:'Overall Bias Score',v:m.overall_bias_score.toFixed(3),t:m.overall_bias_score>.5?'HIGH':m.overall_bias_score>.3?'MODERATE':'LOW',c:m.overall_bias_score>.5?'no':m.overall_bias_score>.3?'warn':'ok',col:m.overall_bias_score>.5?'var(--red)':m.overall_bias_score>.3?'var(--amber)':'var(--green)'},
+    {l:'Disparate Impact Ratio',v:m.disparate_impact_ratio.toFixed(3),t:m.disparate_impact_ratio>=.8?'PASS':'FAIL',c:m.disparate_impact_ratio>=.8?'ok':'no',col:m.disparate_impact_ratio>=.8?'var(--green)':'var(--red)'},
+    {l:'Demographic Parity Diff',v:m.demographic_parity_diff.toFixed(3),t:m.demographic_parity_diff<.1?'PASS':'FAIL',c:m.demographic_parity_diff<.1?'ok':'no',col:m.demographic_parity_diff<.1?'var(--green)':'var(--red)'},
+    {l:'Equal Opportunity Diff',v:m.equal_opportunity_diff.toFixed(3),t:m.equal_opportunity_diff<.15?'PASS':'WARN',c:m.equal_opportunity_diff<.15?'ok':'warn',col:m.equal_opportunity_diff<.15?'var(--green)':'var(--amber)'}
+  ];
+  document.getElementById('metric-cards').innerHTML=cards.map(x=>`<div class="mcard" style="color:${x.col}"><div class="mcard-glow" style="background:${x.col}"></div><div class="mcard-label">${x.l}</div><div class="mcard-val" style="color:var(--text)">${x.v}</div><div class="mcard-tag tag-${x.c}">● ${x.t}</div></div>`).join('');
+  barChart('chart-grader',{labels:['Bias Det.','Mitigation','Explanation','Efficiency','Policy','Consistency'],values:[g.bias_detection_score,g.mitigation_score,g.explanation_quality,g.efficiency_score,g.policy_compliance_score,g.consistency_score],color:'#38bdf8',max:100});
+  barChart('chart-metrics',{labels:['DPD','EOD','EQO','CAL','Bias'],values:[m.demographic_parity_diff,m.equal_opportunity_diff,m.equalized_odds_diff,m.calibration_diff,m.overall_bias_score],color:'#fb7185',max:1});
+  const vl=document.getElementById('violations-list');
+  if(!d.violations||!d.violations.length)vl.innerHTML='<div class="alert alert-ok"> All policies passing</div>';
+  else vl.innerHTML=d.violations.map(v=>`<div class="vitem"><div style="flex-shrink:0;margin-top:1px;color:var(--red)"></div><div style="flex:1"><div style="font-size:11.5px;font-weight:600;color:var(--red)">${v.id} -- ${v.name}</div><div style="font-size:10.5px;color:var(--text3);margin-top:2px">${v.description}</div><div style="font-size:10px;color:var(--text2);margin-top:5px;display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="tag tag-${v.severity}">${v.severity}</span>Value: <code>${v.current_value}</code> • Threshold: <code>${v.operator==='less_than'?'<':'>'} ${v.threshold}</code></div></div></div>`).join('');
+  document.getElementById('gemini-narrative').textContent=d.gemini_narrative||'—';
+  const bi=d.bias_injected||{};
+  document.getElementById('bias-info').innerHTML=`<span class="tag tag-warn">${bi.bias_type||'—'}</span> Severity: <strong style="color:var(--text)">${bi.severity||'—'}</strong> • Affected rows: <strong style="color:var(--text)">${bi.affected_rows||0}</strong>${bi.proxy_feature?` • Proxy: <strong style="color:var(--text)">${bi.proxy_feature}</strong>`:''}`;
+  // CSV Verdict Banner
+  const vb=document.getElementById('csv-verdict-banner');
+  if(d.csv_verdict){
+    vb.style.display='block';
+    const vc=d.csv_verdict_color||'amber';
+    const bgMap={green:'rgba(52,211,153,.08)',red:'rgba(251,113,133,.08)',amber:'rgba(251,191,36,.08)'};
+    const borderMap={green:'rgba(52,211,153,.25)',red:'rgba(251,113,133,.25)',amber:'rgba(251,191,36,.25)'};
+    const colMap={green:'var(--green)',red:'var(--red)',amber:'var(--amber)'};
+    const emojiMap={UNBIASED:'[PASS]',SEVERELY_BIASED:'[CRIT]',HIGHLY_BIASED:'[HIGH]',MODERATELY_BIASED:'[MOD]'};
+    vb.style.background=bgMap[vc]||bgMap.amber;
+    vb.style.borderColor=borderMap[vc]||borderMap.amber;
+    document.getElementById('csv-verdict-emoji').textContent=emojiMap[d.csv_verdict.replace(/ /g,'_')]||(d.csv_verdict==='UNBIASED'?'[PASS]':'[WARN]');
+    document.getElementById('csv-verdict-label').innerHTML=`<span style="color:${colMap[vc]||colMap.amber}">${d.csv_verdict}</span>`;
+    document.getElementById('csv-verdict-file').textContent=`File: ${d.csv_filename||'uploaded.csv'} • ${d.csv_rows||0} rows analyzed`;
+    document.getElementById('csv-verdict-detail').textContent=d.csv_verdict_detail||'';
+    // Show per-column findings
+    const findings=(d.csv_analysis&&d.csv_analysis.findings)||[];
+    if(findings.length){
+      document.getElementById('csv-verdict-findings').innerHTML=findings.map(f=>{
+        const sc=f.severity==='NONE'?'green':f.severity==='MODERATE'?'amber':'red';
+        return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:11px"><span class="tag tag-${f.is_biased?'no':'ok'}">${f.column}</span> DI=${f.disparate_impact_ratio.toFixed(3)} <span style="color:var(--text3)">${f.min_rate_group} ${(f.min_rate*100).toFixed(1)}% vs ${f.max_rate_group} ${(f.max_rate*100).toFixed(1)}%</span> <span class="tag" style="color:var(--${sc})">${f.severity}</span></div>`;
+      }).join('');
+    }
+  } else {
+    vb.style.display='none';
+  }
+  try{}catch(e){}
+}
+
+async function checkApiStatus(){
+  const dot=document.getElementById('dash-api-dot');
+  const lbl=document.getElementById('dash-api-label');
+  if(!dot||!lbl)return;
+  try{
+    const r=await fetch(`${API}/api/`,{signal:AbortSignal.timeout(3000)});
+    if(r.ok){dot.classList.add('online');lbl.textContent='Backend Connected'}
+    else{dot.classList.remove('online');lbl.textContent='API Error '+r.status}
+  }catch(e){dot.classList.remove('online');lbl.textContent='Backend Offline -- start uvicorn'}
+}
+
+function renderDashboard(){
+  const dc=document.getElementById('dash-content');
+  if(!dc)return;
+  if(!S.auditData){dc.style.display='none';return}
+  dc.style.display='block';
+  const rid=document.getElementById('dash-run-id-display');
+  if(rid)rid.textContent=S.runId;
+  const m=S.auditData.metrics,g=S.auditData.grader;
+  const cards=[
+    {l:'Bias Score',v:m.overall_bias_score.toFixed(3),t:m.overall_bias_score>.5?'HIGH':'OK',c:m.overall_bias_score>.5?'no':'ok',col:m.overall_bias_score>.5?'var(--red)':'var(--green)'},
+    {l:'Disparate Impact',v:m.disparate_impact_ratio.toFixed(3),t:m.disparate_impact_ratio>=.8?'PASS':'FAIL',c:m.disparate_impact_ratio>=.8?'ok':'no',col:m.disparate_impact_ratio>=.8?'var(--green)':'var(--red)'},
+    {l:'Dem. Parity Diff',v:m.demographic_parity_diff.toFixed(3),t:m.demographic_parity_diff<.1?'PASS':'FAIL',c:m.demographic_parity_diff<.1?'ok':'no',col:m.demographic_parity_diff<.1?'var(--green)':'var(--red)'},
+    {l:'Eq. Opportunity',v:m.equal_opportunity_diff.toFixed(3),t:m.equal_opportunity_diff<.15?'PASS':'WARN',c:m.equal_opportunity_diff<.15?'ok':'warn',col:m.equal_opportunity_diff<.15?'var(--green)':'var(--amber)'}
+  ];
+  const dm=document.getElementById('dash-metrics');
+  if(dm)dm.innerHTML=cards.map(x=>`<div class="mcard" style="color:${x.col}"><div class="mcard-glow" style="background:${x.col}"></div><div class="mcard-label">${x.l}</div><div class="mcard-val" style="color:var(--text)">${x.v}</div><div class="mcard-tag tag-${x.c}">● ${x.t}</div></div>`).join('');
+  barChart('dash-chart1',{labels:['Bias Det.','Mitigation','Explanation','Efficiency','Policy','Consistency'],values:[g.bias_detection_score,g.mitigation_score,g.explanation_quality,g.efficiency_score,g.policy_compliance_score,g.consistency_score],color:'#38bdf8',max:100});
+  barChart('dash-chart2',{labels:['DPD','EOD','EQO','CAL','Bias'],values:[m.demographic_parity_diff,m.equal_opportunity_diff,m.equalized_odds_diff,m.calibration_diff,m.overall_bias_score],color:'#fb7185',max:1});
+  const vl=document.getElementById('dash-violations');
+  if(vl){
+    if(!S.auditData.violations||!S.auditData.violations.length)vl.innerHTML='<div class="alert alert-ok"> All clear</div>';
+    else vl.innerHTML=S.auditData.violations.slice(0,5).map(v=>`<div class="vitem"><div style="flex-shrink:0;color:var(--red)"></div><div><div style="font-size:11px;font-weight:600;color:var(--red)">${v.id}</div><div style="font-size:10.5px;color:var(--text3);margin-top:2px">${v.name}</div></div></div>`).join('');
+  }
+  const dn=document.getElementById('dash-narrative');
+  if(dn)dn.textContent=S.auditData.gemini_narrative||'—';
+  try{}catch(e){}
+}
+
+function killChart(id){if(S.charts[id]){S.charts[id].destroy();delete S.charts[id]}}
+function barChart(id,{labels,values,color,max=1}){
+  killChart(id);const ctx=document.getElementById(id);if(!ctx)return;
+  S.charts[id]=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:values,backgroundColor:color+'30',borderColor:color,borderWidth:1.5,borderRadius:6,hoverBackgroundColor:color+'50'}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:700,easing:'easeOutQuart'},plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(11,18,40,.98)',borderColor:'rgba(99,162,255,.15)',borderWidth:1,titleColor:'#f0f4ff',bodyColor:'#8892a4',padding:10,cornerRadius:8}},scales:{x:{grid:{color:'rgba(128,128,128,.1)',drawBorder:false},ticks:{color:'#6b7280',font:{size:9,family:'Outfit'}}},y:{grid:{color:'rgba(128,128,128,.1)',drawBorder:false},ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},max,min:0}}}})
+}
+
+async function loadHeatmap(){if(!S.runId)return;try{const r=await fetch(`${API}/api/heatmap/${S.runId}`);const d=await r.json();renderHeatmap(d.heatmap_data||[])}catch(e){toast('Heatmap error','error')}}
+function renderHeatmap(groups){if(!groups||!groups.length)return;document.getElementById('heatmap-empty').style.display='none';document.getElementById('heatmap-content').style.display='block';const cols=['accept_rate','tpr','fpr','calibration_error'],cLbl=['Accept Rate','TPR','FPR','Cal. Err'],grid=document.getElementById('hmap-grid'),hdr=document.getElementById('hmap-header');hdr.style.gridTemplateColumns=`140px repeat(${cols.length},1fr)`;hdr.innerHTML=`<div style="font-size:9.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;font-family:var(--ff-h)">Group</div>`+cLbl.map(l=>`<div style="font-size:9.5px;color:var(--text3);text-transform:uppercase;text-align:center;letter-spacing:.06em;font-family:var(--ff-h)">${l}</div>`).join('');grid.style.gridTemplateColumns=`140px repeat(${cols.length},1fr)`;grid.innerHTML='';groups.forEach(g=>{grid.innerHTML+=`<div style="font-size:11.5px;color:var(--text2);display:flex;align-items:center;padding:0 6px;font-weight:450">${g.group_label}</div>`;cols.forEach(c=>{const v=g[c];const good=c==='fpr'||c==='calibration_error'?v<.2:v>.7;const mid=c==='fpr'||c==='calibration_error'?v<.4:v>.5;const bg=good?'rgba(52,211,153,.14)':mid?'rgba(251,191,36,.14)':'rgba(251,113,133,.14)',fg=good?'#34d399':mid?'#fbbf24':'#fb7185';grid.innerHTML+=`<div class="hcell" style="background:${bg};color:${fg}">${v.toFixed(3)}</div>`})});
+const rates=groups.map(g=>g.accept_rate);killChart('chart-heatmap-bar');S.charts['chart-heatmap-bar']=new Chart(document.getElementById('chart-heatmap-bar'),{type:'bar',data:{labels:groups.map(g=>g.group_label),datasets:[{data:rates,backgroundColor:rates.map(r=>r>.7?'rgba(52,211,153,.18)':r>.5?'rgba(251,191,36,.18)':'rgba(251,113,133,.18)'),borderColor:rates.map(r=>r>.7?'#34d399':r>.5?'#fbbf24':'#fb7185'),borderWidth:1.5,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',font:{size:8},maxRotation:45},grid:{color:'rgba(128,128,128,.1)'}},y:{min:0,max:1,ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},grid:{color:'rgba(128,128,128,.1)'}}}}});killChart('chart-tpr-fpr');S.charts['chart-tpr-fpr']=new Chart(document.getElementById('chart-tpr-fpr'),{type:'bar',data:{labels:groups.map(g=>g.group_label),datasets:[{label:'TPR',data:groups.map(g=>g.tpr),backgroundColor:'rgba(52,211,153,.18)',borderColor:'#34d399',borderWidth:1.5,borderRadius:4},{label:'FPR',data:groups.map(g=>g.fpr),backgroundColor:'rgba(251,113,133,.18)',borderColor:'#fb7185',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6b7280',font:{size:9,family:'Outfit'},boxWidth:10,boxHeight:10}}},scales:{x:{ticks:{color:'#6b7280',font:{size:8},maxRotation:45},grid:{color:'rgba(128,128,128,.1)'}},y:{min:0,max:1,ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},grid:{color:'rgba(128,128,128,.1)'}}}}});
+}
+
+async function startTraining(){if(!S.runId){toast('Run an audit first','warn');return}const btn=document.getElementById('train-btn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Training…';const ep=parseInt(document.getElementById('train-episodes').value)||50;try{const r=await fetch(`${API}/api/train`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({episodes:ep,run_id:S.runId})});const d=await r.json();toast(`Training started -- ${ep} episodes`,'success');document.getElementById('training-log').textContent='';clearInterval(S.trainInt);S.trainInt=setInterval(pollTrain,800);initTrainCharts()}catch(e){toast('Error: '+e.message,'error');btn.disabled=false;btn.innerHTML=' Start PPO Training';}}
+function resetTraining(){clearInterval(S.trainInt);fetch(`${API}/api/train/reset`,{method:'POST'});document.getElementById('ep-counter').textContent='—';document.getElementById('reward-counter').textContent='—';document.getElementById('bias-counter').textContent='—';document.getElementById('train-progress-fill').style.width='0%';document.getElementById('train-progress-text').textContent='0 / 0';document.getElementById('training-log').textContent='Reset.\n';const btn=document.getElementById('train-btn');btn.disabled=false;btn.innerHTML=' Start PPO Training';try{}catch(e){}['chart-reward','chart-bias-train'].forEach(id=>{if(S.charts[id]){S.charts[id].data.datasets[0].data=[];S.charts[id].update()}})}
+async function pollTrain(){try{const r=await fetch(`${API}/api/train/status`);const d=await r.json();const{current_ep,total_ep,reward_history,bias_history,logs,active}=d;document.getElementById('ep-counter').textContent=`${current_ep}/${total_ep}`;document.getElementById('reward-counter').textContent=reward_history.length?reward_history.slice(-1)[0].toFixed(3):'—';document.getElementById('bias-counter').textContent=bias_history.length?bias_history.slice(-1)[0].toFixed(3):'—';const p=total_ep?(current_ep/total_ep*100):0;document.getElementById('train-progress-fill').style.width=p+'%';document.getElementById('train-progress-text').textContent=`${current_ep} / ${total_ep}`;if(logs&&logs.length){const el=document.getElementById('training-log');el.textContent=logs.slice(-60).join('\n')+'\n';el.scrollTop=el.scrollHeight}if(S.charts['chart-reward']){S.charts['chart-reward'].data.labels=reward_history.map((_,i)=>i+1);S.charts['chart-reward'].data.datasets[0].data=reward_history;S.charts['chart-reward'].update('none')}if(S.charts['chart-bias-train']){S.charts['chart-bias-train'].data.labels=bias_history.map((_,i)=>i+1);S.charts['chart-bias-train'].data.datasets[0].data=bias_history;S.charts['chart-bias-train'].update('none')}if(!active&&current_ep>=total_ep&&total_ep>0){clearInterval(S.trainInt);const btn=document.getElementById('train-btn');btn.disabled=false;btn.innerHTML=' Start PPO Training';try{}catch(e){}renderBeforeAfter(d);toast('Training complete!','success')}}catch(e){}}
+function initTrainCharts(){killChart('chart-reward');const c1=document.getElementById('chart-reward');if(!c1)return;S.charts['chart-reward']=new Chart(c1,{type:'line',data:{labels:[],datasets:[{data:[],borderColor:'#34d399',backgroundColor:'rgba(52,211,153,.06)',fill:true,tension:.4,pointRadius:0,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:0},plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',font:{size:8}},grid:{color:'rgba(128,128,128,.1)'}},y:{min:0,max:1,ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},grid:{color:'rgba(128,128,128,.1)'}}}}}); killChart('chart-bias-train');const c2=document.getElementById('chart-bias-train');if(!c2)return;S.charts['chart-bias-train']=new Chart(c2,{type:'line',data:{labels:[],datasets:[{data:[],borderColor:'#fb7185',backgroundColor:'rgba(251,113,133,.06)',fill:true,tension:.4,pointRadius:0,borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:0},plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',font:{size:8}},grid:{color:'rgba(128,128,128,.1)'}},y:{min:0,max:1,ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},grid:{color:'rgba(128,128,128,.1)'}}}}})}
+function renderBeforeAfter(d){const bb=d.bias_before||.7,ba=d.bias_after||.2;killChart('chart-before-after');S.charts['chart-before-after']=new Chart(document.getElementById('chart-before-after'),{type:'bar',data:{labels:['DPD','EOD','Disparate Impact','Overall Bias'],datasets:[{label:'Before',data:[bb*.6,bb*.5,1-bb*.7,bb],backgroundColor:'rgba(251,113,133,.18)',borderColor:'#fb7185',borderWidth:1.5,borderRadius:5},{label:'After',data:[ba*.6,ba*.5,1-ba*.7,ba],backgroundColor:'rgba(52,211,153,.18)',borderColor:'#34d399',borderWidth:1.5,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:700},plugins:{legend:{labels:{color:'#6b7280',font:{size:10,family:'Outfit'},boxWidth:10,boxHeight:10}}},scales:{x:{ticks:{color:'#6b7280',font:{size:10,family:'Outfit'}},grid:{color:'rgba(128,128,128,.1)'}},y:{min:0,max:1,ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},grid:{color:'rgba(128,128,128,.1)'}}}}});}
+
+let allPolicies=[];
+async function loadPolicies(){if(!S.runId)return;try{const r=await fetch(`${API}/api/policies/${S.runId}`);const d=await r.json();allPolicies=d.policies||[];filterPolicies();document.getElementById('policy-summary').textContent=`${allPolicies.filter(p=>p.passed).length} pass / ${allPolicies.filter(p=>!p.passed).length} fail`}catch(e){toast('Error','error')}}
+function filterPolicies(){const df=document.getElementById('policy-filter-domain').value,sf=document.getElementById('policy-filter-status').value;let f=allPolicies;if(df!=='all')f=f.filter(p=>p.domain===df||p.domain==='all');if(sf==='fail')f=f.filter(p=>!p.passed);if(sf==='pass')f=f.filter(p=>p.passed);const tb=document.getElementById('policies-tbody');if(!f.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text3)">No matches</td></tr>';return}tb.innerHTML=f.map(p=>`<tr><td style="padding-left:16px"><code style="color:var(--accent);background:var(--accent-dim);border-color:var(--accent-border)">${p.id}</code></td><td><div style="font-size:12px;color:var(--text);font-weight:450">${p.name}</div>${p.legal_reference?`<div style="font-size:10px;color:var(--text3);margin-top:2px">${p.legal_reference}</div>`:''}</td><td><span class="tag tag-info" style="font-size:9.5px">${p.domain}</span></td><td><span class="tag tag-${p.severity}">${p.severity}</span></td><td style="font-family:var(--ff-m);font-size:11px">${p.current_value.toFixed(4)}</td><td style="font-family:var(--ff-m);font-size:11px">${p.operator==='less_than'?'< ':'>'}${p.threshold}</td><td style="padding-right:16px"><span class="tag tag-${p.passed?'ok':'no'}">${p.passed?' PASS':' FAIL'}</span></td></tr>`).join('')}
+
+async function loadReport(){if(!S.runId)return;try{const r=await fetch(`${API}/api/report/${S.runId}`);const d=await r.json();document.getElementById('report-empty').style.display='none';document.getElementById('report-content').style.display='block';const gc={A:'#34d399',B:'#a3e635',C:'#fbbf24',D:'#f97316',F:'#fb7185'},g=d.grade,gr=document.getElementById('grade-ring');gr.textContent=g;gr.style.color=gc[g]||'#8892a4';gr.style.borderColor=gc[g]||'#8892a4';gr.style.boxShadow=`inset 0 0 40px ${(gc[g]||'#8892a4')}18,0 0 30px ${(gc[g]||'#8892a4')}18`;document.getElementById('report-score').textContent=d.final_score.toFixed(1)+'/100';document.getElementById('report-verdict').innerHTML=`<span class="tag tag-${d.passed?'ok':'no'}">${d.passed?' PASSED':' NEEDS WORK'}</span> <span style="color:var(--text3);margin-left:4px">${d.domain}</span>`;const gb=d.grader_breakdown,bars=[{l:'Bias Detection',v:gb.bias_detection_score,c:'#38bdf8'},{l:'Mitigation',v:gb.mitigation_score,c:'#818cf8'},{l:'Explanation',v:gb.explanation_quality,c:'#60a5fa'},{l:'Efficiency',v:gb.efficiency_score,c:'#34d399'},{l:'Policy',v:gb.policy_compliance_score,c:'#fbbf24'},{l:'Consistency',v:gb.consistency_score,c:'#fb7185'}];document.getElementById('report-score-bars').innerHTML=bars.map(b=>`<div class="srow"><div class="srow-l">${b.l}</div><div class="srow-t"><div class="srow-f" style="width:${b.v}%;background:${b.c}"></div></div><div class="srow-v">${b.v.toFixed(0)}</div></div>`).join('');killChart('chart-radar');S.charts['chart-radar']=new Chart(document.getElementById('chart-radar'),{type:'radar',data:{labels:bars.map(b=>b.l),datasets:[{data:bars.map(b=>b.v),backgroundColor:'rgba(56,189,248,.1)',borderColor:'#38bdf8',borderWidth:2,pointBackgroundColor:'#38bdf8',pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{r:{min:0,max:100,ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'},stepSize:25,backdropColor:'transparent'},grid:{color:'rgba(255,255,255,.05)'},angleLines:{color:'rgba(255,255,255,.04)'},pointLabels:{color:'#8892a4',font:{size:9,family:'Outfit'}}}}}});document.getElementById('report-narrative').textContent=d.gemini_narrative||'—';document.getElementById('print-meta').textContent=`Domain: ${d.domain} | Run: ${d.run_id} | ${new Date().toLocaleDateString()}`;document.getElementById('print-grade-text').textContent=`Grade: ${g} — Score: ${d.final_score.toFixed(1)}/100 | ${d.passed?'PASSED':'NEEDS WORK'}`;document.getElementById('print-narrative').textContent=d.gemini_narrative||'';}catch(e){toast('Report error','error')}}
+function exportPDF(){document.getElementById('print-area').style.display='block';window.print();document.getElementById('print-area').style.display='none';toast('PDF dialog opened','success')}
+
+function loadMitigate(){if(!S.runId||!S.auditData)return;document.getElementById('mitigate-empty').style.display='none';document.getElementById('mitigate-content').style.display='block';const sg=S.suggestions||[],pc={1:'var(--red)',2:'var(--amber)',3:'var(--blue)'};document.getElementById('suggestions-list').innerHTML=sg.length?sg.map(s=>`<div class="strat"><div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><span style="color:${pc[s.priority]||'var(--text2)'};font-size:11px;font-weight:700;font-family:var(--ff-h)">P${s.priority}</span><span style="font-size:12.5px;font-weight:550;color:var(--text)">${s.strategy}</span></div><div style="font-size:11.5px;color:var(--text2);margin-bottom:7px;line-height:1.5">${s.description}</div><div style="font-size:10.5px;color:var(--green)">${s.expected_improvement}</div></div>`).join(''):'<div style="color:var(--text3);font-size:12px;padding:8px 0">No suggestions -- model appears fair.</div>'}
+async function applyMitigation(){if(!S.runId){toast('Run an audit first','warn');return}const btn=document.getElementById('mitigate-btn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Applying…';showLoad('Applying mitigation…');try{const st=document.getElementById('strategy-select').value,sn=parseFloat(document.getElementById('strength-slider').value);const r=await fetch(`${API}/api/mitigate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({run_id:S.runId,strategy:st,strength:sn})});const d=await r.json();document.getElementById('mitigation-results').style.display='block';document.getElementById('mitigation-metrics-card').style.display='block';const mb=d.metrics_before,ma=d.metrics_after,ms=['demographic_parity_diff','equal_opportunity_diff','disparate_impact_ratio','equalized_odds_diff','overall_bias_score'],ml=['DPD','EOD','DI Ratio','EQO','Bias Score'];killChart('chart-mitigate');S.charts['chart-mitigate']=new Chart(document.getElementById('chart-mitigate'),{type:'bar',data:{labels:ml,datasets:[{label:'Before',data:ms.map(m=>Math.abs(mb[m]||0)),backgroundColor:'rgba(251,113,133,.18)',borderColor:'#fb7185',borderWidth:1.5,borderRadius:5},{label:'After',data:ms.map(m=>Math.abs(ma[m]||0)),backgroundColor:'rgba(52,211,153,.18)',borderColor:'#34d399',borderWidth:1.5,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6b7280',font:{size:10,family:'Outfit'},boxWidth:10,boxHeight:10}}},scales:{x:{ticks:{color:'#6b7280',font:{size:10}},grid:{color:'rgba(128,128,128,.1)'}},y:{min:0,max:1,ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},grid:{color:'rgba(128,128,128,.1)'}}}}});document.getElementById('mitigation-metrics-table').innerHTML=ms.map((m,i)=>{const b=(mb[m]||0).toFixed(4),a=(ma[m]||0).toFixed(4),dl=parseFloat(a)-parseFloat(b),g=m==='disparate_impact_ratio'?dl>0:dl<0;return`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.02);font-size:11.5px"><span style="color:var(--text2);flex:1">${ml[i]}</span><span style="font-family:var(--ff-m);color:var(--text3);width:70px;text-align:right">${b}</span><span style="color:var(--text3);padding:0 6px">→</span><span style="font-family:var(--ff-m);color:${g?'var(--green)':'var(--red)'};width:70px;text-align:right">${a}</span><span class="tag tag-${g?'ok':'no'}" style="margin-left:8px;min-width:72px;justify-content:center">${dl>0?'+':''}${dl.toFixed(3)}</span></div>`}).join('');toast(`Mitigation applied • ${d.projected_improvement}`,'success')}catch(e){toast('Error: '+e.message,'error')}finally{hideLoad();btn.disabled=false;btn.innerHTML=' Apply Mitigation';}}
+
+async function runCounterfactual(){const gv=document.getElementById('wi-gender').value,rv=document.getElementById('wi-race').value,ag=document.getElementById('wi-age').value,inc=document.getElementById('wi-income').value,ca=document.getElementById('wi-cf-attr').value;const cm={gender:gv==='0'?'1':'0',race:rv==='0'?'1':'0',age:'65'};showLoad('Running counterfactual…');try{const r=await fetch(`${API}/api/counterfactual`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({individual:{gender:gv,race:rv,age:ag,income:inc},sensitive_attr:ca,counterfactual_value:cm[ca]||'1',run_id:S.runId||''})});const d=await r.json();document.getElementById('decision-card').style.display='block';const o=d.original,cf=d.counterfactual;const dp=(dec,prob)=>`<span class="dpill" style="background:${dec==='APPROVED'?'var(--green-dim)':'var(--red-dim)'};color:${dec==='APPROVED'?'var(--green)':'var(--red)'};border:1px solid ${dec==='APPROVED'?'var(--green-border)':'var(--red-border)'}">${dec==='APPROVED'?'':''} ${dec} <span style="font-size:10.5px;opacity:.7;font-family:var(--ff-m);margin-left:4px">${(prob*100).toFixed(0)}%</span></span>`;document.getElementById('decision-original').innerHTML=dp(o.decision,o.probability,'check','x');document.getElementById('decision-cf').innerHTML=dp(cf.decision,cf.probability);document.getElementById('prob-original').textContent=`${(o.probability*100).toFixed(1)}% confidence`;document.getElementById('prob-cf').textContent=`${(cf.probability*100).toFixed(1)}% confidence`;const fi=document.getElementById('flip-indicator');fi.innerHTML=d.flip_detected?`<div style="color:var(--red);font-size:12px;font-weight:700;font-family:var(--ff-h)">Flipped</div><div style="font-size:10.5px;color:var(--text3);margin-top:3px">Î” ${(d.probability_delta*100).toFixed(1)}%</div>`:`<div style="color:var(--green);font-size:12px;font-weight:700;font-family:var(--ff-h)">Consistent</div><div style="font-size:10.5px;color:var(--text3);margin-top:3px">Î” ${(d.probability_delta*100).toFixed(1)}%</div>`;document.getElementById('group-grid').innerHTML=(d.group_results||[]).map(g=>`<div class="gtile"><div style="font-size:9.5px;color:var(--text3);margin-bottom:5px">${g.gender} × ${g.race}</div><div style="font-size:13px;font-weight:700;color:${g.decision==='APPROVED'?'var(--green)':'var(--red)'}">${g.decision==='APPROVED'?'':''}</div><div style="font-size:9.5px;font-family:var(--ff-m);color:var(--text3);margin-top:3px">${(g.probability*100).toFixed(0)}%</div></div>`).join('');document.getElementById('cf-explanation').textContent=d.explanation||'—';toast('Counterfactual complete','success');}catch(e){toast('Error: '+e.message,'error')}finally{hideLoad()}}
+
+async function loadDrift(){try{const r=await fetch(`${API}/api/drift/status`);const d=await r.json();renderDrift(d)}catch(e){toast('Drift error','error')}}
+async function simulateDrift(){const btn=document.getElementById('drift-sim-btn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Simulating…';try{const r=await fetch(`${API}/api/drift/simulate`,{method:'POST'});const d=await r.json();renderDrift(d);toast('Drift simulation complete -- alerts triggered!','warn')}catch(e){toast('Error','error')}finally{btn.disabled=false;btn.innerHTML=' Simulate Drift';}}
+async function resetDrift(){await fetch(`${API}/api/drift/reset`,{method:'POST'});document.getElementById('drift-injected-badge').style.display='none';document.getElementById('drift-alerts-card').style.display='none';await loadDrift();toast('Drift reset','success')}
+function renderDrift(d){if(d.injected)document.getElementById('drift-injected-badge').style.display='inline-flex';const bl=d.baseline;document.getElementById('drift-baseline-cards').innerHTML=`<div class="mcard"><div class="mcard-label">Baseline DI Ratio</div><div class="mcard-val">${bl.disparate_impact_ratio.toFixed(3)}</div><div class="mcard-tag tag-ok">● BASELINE</div></div><div class="mcard"><div class="mcard-label">Baseline Dem. Parity</div><div class="mcard-val">${bl.demographic_parity_diff.toFixed(3)}</div><div class="mcard-tag tag-ok">● BASELINE</div></div><div class="mcard"><div class="mcard-label">Baseline Bias Score</div><div class="mcard-val">${bl.overall_bias_score.toFixed(3)}</div><div class="mcard-tag tag-ok">● BASELINE</div></div>`;const h=d.history,labels=h.map(x=>x.day),diVals=h.map(x=>x.disparate_impact_ratio),biasVals=h.map(x=>x.overall_bias_score),alertDays=h.map(x=>x.alert);killChart('chart-drift-di');S.charts['chart-drift-di']=new Chart(document.getElementById('chart-drift-di'),{type:'line',data:{labels,datasets:[{label:'DI Ratio',data:diVals,borderColor:'#818cf8',backgroundColor:'rgba(129,140,248,.06)',fill:true,tension:.3,pointRadius:alertDays.map(a=>a?5:2),pointBackgroundColor:alertDays.map(a=>a?'#fb7185':'#818cf8'),borderWidth:2},{label:'5% Threshold',data:labels.map(()=>0.741),borderColor:'rgba(251,113,133,.4)',borderDash:[5,4],borderWidth:1.5,pointRadius:0,fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6b7280',font:{size:9}}}},scales:{x:{ticks:{color:'#6b7280',font:{size:8},maxRotation:45},grid:{color:'rgba(128,128,128,.1)'}},y:{min:.3,max:1.0,ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},grid:{color:'rgba(128,128,128,.1)'}}}}});killChart('chart-drift-bias');S.charts['chart-drift-bias']=new Chart(document.getElementById('chart-drift-bias'),{type:'line',data:{labels,datasets:[{label:'Bias Score',data:biasVals,borderColor:'#fb7185',backgroundColor:'rgba(251,113,133,.06)',fill:true,tension:.3,pointRadius:alertDays.map(a=>a?5:2),pointBackgroundColor:alertDays.map(a=>a?'#fbbf24':'#fb7185'),borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',font:{size:8},maxRotation:45},grid:{color:'rgba(128,128,128,.1)'}},y:{min:0,max:1,ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},grid:{color:'rgba(128,128,128,.1)'}}}}});const alerts=d.alerts||[];if(alerts.length){document.getElementById('drift-alerts-card').style.display='block';document.getElementById('drift-alerts-list').innerHTML=alerts.map(a=>`<div class="vitem"><div style="color:${a.severity==='critical'?'var(--red)':'var(--amber)'};flex-shrink:0"></div><div><div style="font-size:11.5px;font-weight:600;color:${a.severity==='critical'?'var(--red)':'var(--amber)'}">${a.day} — Fairness Alert</div><div style="font-size:10.5px;color:var(--text3);margin-top:2px">${a.message}</div></div></div>`).join('');}renderDriftDistCharts()}
+function renderDriftDistCharts(){const trLabels=['<30k','30-50k','50-75k','75-100k','>100k'];const tr=[80,220,340,210,90];const pr=[110,230,280,180,60];killChart('chart-drift-dist1');S.charts['chart-drift-dist1']=new Chart(document.getElementById('chart-drift-dist1'),{type:'bar',data:{labels:trLabels,datasets:[{label:'Training',data:tr,backgroundColor:'rgba(129,140,248,.18)',borderColor:'#818cf8',borderWidth:1.5,borderRadius:4},{label:'Production',data:pr,backgroundColor:'rgba(251,113,133,.18)',borderColor:'#fb7185',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6b7280',font:{size:9}}},title:{display:true,text:'Income Distribution Shift',color:'#8892a4',font:{size:10}}},scales:{x:{ticks:{color:'#6b7280',font:{size:8}},grid:{color:'rgba(128,128,128,.1)'}},y:{ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},grid:{color:'rgba(128,128,128,.1)'}}}}});const cr=['500-580','580-660','660-720','720-780','>780'];const tc=[60,140,300,280,150];const pc=[90,180,240,220,100];killChart('chart-drift-dist2');S.charts['chart-drift-dist2']=new Chart(document.getElementById('chart-drift-dist2'),{type:'bar',data:{labels:cr,datasets:[{label:'Training',data:tc,backgroundColor:'rgba(129,140,248,.18)',borderColor:'#818cf8',borderWidth:1.5,borderRadius:4},{label:'Production',data:pc,backgroundColor:'rgba(251,113,133,.18)',borderColor:'#fb7185',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6b7280',font:{size:9}}},title:{display:true,text:'Credit Score Distribution Shift',color:'#8892a4',font:{size:10}}},scales:{x:{ticks:{color:'#6b7280',font:{size:8}},grid:{color:'rgba(128,128,128,.1)'}},y:{ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},grid:{color:'rgba(128,128,128,.1)'}}}}});}
+
+async function loadTrail(){try{const r=await fetch(`${API}/api/trail`);const d=await r.json();document.getElementById('trail-count').textContent=`${d.count} entries`;const tb=document.getElementById('trail-tbody');if(!d.entries||!d.entries.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;color:var(--text3)">No audit events yet — run an audit first</td></tr>';return}tb.innerHTML=d.entries.map((e,i)=>`<tr><td style="padding-left:14px;font-family:var(--ff-m);font-size:10.5px;color:var(--text3)">#${i+1}</td><td><code style="font-size:10px">${e.trace_id.slice(0,8)}…</code></td><td><span class="tag ${e.event.startsWith('[TAMPERED]')?'tag-no':'tag-info'}" style="font-size:10px">${e.event}</span></td><td style="font-size:10.5px;color:var(--text3)">${new Date(e.timestamp).toLocaleTimeString()}</td><td style="font-size:10.5px;color:var(--text2)">${Object.entries(e.data||{}).slice(0,2).map(([k,v])=>`${k}: ${JSON.stringify(v)}`).join(', ')}</td><td style="padding-right:14px"><code style="font-size:9px;color:var(--text3)">${(e.chain_hash||'').slice(0,14)}…</code></td></tr>`).join('')}catch(e){toast('Trail error','error')}}
+async function verifyTrail(){const btn=document.getElementById('trail-verify-btn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Verifying…';try{const r=await fetch(`${API}/api/trail/verify`,{method:'POST'});const d=await r.json();const el=document.getElementById('trail-verify-result');el.style.display='block';const errHtml=d.errors&&d.errors.length?'<div style="margin-top:6px;font-size:11px;color:var(--red)">'+d.errors.join('<br>')+'</div>':'';el.innerHTML='<div class="'+(d.valid?'alert alert-ok':'vitem')+'" style="'+(d.valid?'':'border-left-color:var(--red)')+'">'+( d.valid?'':'')+' '+d.message+' <span style="color:var(--text3);font-size:11px;margin-left:8px">('+d.checked+' records checked)</span>'+errHtml+'</div>';toast(d.valid?'Chain intact!':'Tampering detected!',d.valid?'success':'error')}catch(e){toast('Error','error')}finally{btn.disabled=false;btn.innerHTML=' Verify Integrity';}}
+async function tamperDemo(){if(!confirm('This will modify an audit entry to simulate tampering. Run Verify to detect it.'))return;await fetch(`${API}/api/trail/tamper/0`,{method:'POST'});await loadTrail();toast('Entry #1 tampered -- click Verify Integrity to detect it','warn')}
+
+const selectedModels=new Set();
+function toggleModel(el){const m=el.dataset.model;if(selectedModels.has(m)){selectedModels.delete(m);el.style.opacity='0.4'}else{selectedModels.add(m);el.style.opacity='1'}}
+async function runBenchmark(){if(!selectedModels.size){toast('Select at least one model','warn');return}const btn=document.getElementById('bench-btn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Running…';showLoad('Benchmarking models…');try{const r=await fetch(`${API}/api/benchmark`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({models:[...selectedModels],domain:document.getElementById('bench-domain').value})});const d=await r.json();renderBenchmark(d);toast('Benchmark complete','success')}catch(e){toast('Error','error')}finally{hideLoad();btn.disabled=false;btn.innerHTML=' Run Benchmark';}}
+const BENCH_MODEL_COLORS={'gpt-4o':'#34d399','claude-3.5-sonnet':'#38bdf8','gemini-1.5-pro':'#818cf8','llama-3.1-70b':'#fbbf24','mistral-large':'#c084fc'};
+function renderBenchmark(d){document.getElementById('bench-results').style.display='block';const res=d.results;document.getElementById('bench-leaderboard').innerHTML=res.map(r=>`<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.03)"><div style="width:26px;height:26px;border-radius:8px;background:${BENCH_MODEL_COLORS[r.model]||'var(--accent)'}15;border:1px solid ${BENCH_MODEL_COLORS[r.model]||'var(--accent)'}30;display:flex;align-items:center;justify-content:center;font-family:var(--ff-h);font-weight:700;font-size:12px;color:${BENCH_MODEL_COLORS[r.model]||'var(--accent)'}">#${r.rank}</div><div style="flex:1;font-size:12.5px;font-weight:550;color:var(--text)">${r.model}</div><div style="width:180px"><div class="ptrack"><div class="pfill" style="width:${r.overall_fairness*100}%;background:${BENCH_MODEL_COLORS[r.model]||'var(--accent)'}"></div></div></div><div style="width:50px;text-align:right;font-family:var(--ff-m);font-size:12px;color:${BENCH_MODEL_COLORS[r.model]||'var(--accent)'}">${r.overall_fairness.toFixed(3)}</div></div>`).join('');killChart('chart-bench-overall');S.charts['chart-bench-overall']=new Chart(document.getElementById('chart-bench-overall'),{type:'bar',data:{labels:res.map(r=>r.model),datasets:[{data:res.map(r=>r.overall_fairness),backgroundColor:res.map(r=>(BENCH_MODEL_COLORS[r.model]||'#38bdf8')+'25'),borderColor:res.map(r=>BENCH_MODEL_COLORS[r.model]||'#38bdf8'),borderWidth:1.5,borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{min:0,max:1,ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},grid:{color:'rgba(128,128,128,.1)'}},y:{ticks:{color:'#8892a4',font:{size:9,family:'Outfit'}},grid:{color:'rgba(128,128,128,.1)'}}}}});killChart('chart-bench-dims');S.charts['chart-bench-dims']=new Chart(document.getElementById('chart-bench-dims'),{type:'bar',data:{labels:['Gender Bias','Racial Bias','Age Bias'],datasets:res.map(r=>({label:r.model,data:[r.gender_bias,r.racial_bias,r.age_bias],backgroundColor:(BENCH_MODEL_COLORS[r.model]||'#38bdf8')+'25',borderColor:BENCH_MODEL_COLORS[r.model]||'#38bdf8',borderWidth:1.5,borderRadius:4}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6b7280',font:{size:9,family:'Outfit'},boxWidth:10,boxHeight:10}}},scales:{x:{ticks:{color:'#6b7280',font:{size:10}},grid:{color:'rgba(128,128,128,.1)'}},y:{min:0,max:1,ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},grid:{color:'rgba(128,128,128,.1)'}}}}});}
+
+let localRules=[];
+async function loadPolicyRules(){try{const r=await fetch(`${API}/api/policy-rules`);const d=await r.json();localRules=d.rules;renderPolicyRules();if(S.runId)document.getElementById('policy-eval-btn').disabled=false}catch(e){}}
+function renderPolicyRules(){const el=document.getElementById('policy-rules-list');el.innerHTML=localRules.map((r,i)=>`<div class="strat" style="cursor:default;margin-bottom:8px"><div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><span class="tag ${r.active?'tag-ok':'tag-info'}" style="font-size:9.5px">${r.active?'ACTIVE':'OFF'}</span><span style="font-size:12px;font-weight:600;color:var(--text);flex:1">${r.name}</span><label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:10.5px;color:var(--text3)"><input type="checkbox" ${r.active?'checked':''} onchange="localRules[${i}].active=this.checked;renderPolicyRules()" /> Active</label></div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><code style="font-size:10.5px;color:var(--blue)">${r.metric}</code><span style="color:var(--text3);font-size:12px">${r.operator}</span><input type="number" step="0.01" value="${r.threshold}" style="width:70px;padding:4px 8px;font-size:11px;font-family:var(--ff-m)" onchange="localRules[${i}].threshold=parseFloat(this.value)" /><select style="padding:4px 8px;font-size:11px;width:auto" onchange="localRules[${i}].action=this.value"><option ${r.action==='BLOCK'?'selected':''}>BLOCK</option><option ${r.action==='WARN'?'selected':''}>WARN</option></select></div></div>`).join('');updatePolicyYAML()}
+function updatePolicyYAML(){const yaml=`name: DWESH Policy Config\nrules:\n${localRules.filter(r=>r.active).map(r=>`  - id: ${r.id}\n    name: "${r.name}"\n    metric: ${r.metric}\n    operator: "${r.operator}"\n    threshold: ${r.threshold}\n    action: ${r.action}`).join('\n')}`;document.getElementById('policy-yaml-preview').textContent=yaml}
+function addPolicyRule(){const newR={id:`R0${localRules.length+1}`,name:'Custom Rule',metric:'overall_bias_score',operator:'<=',threshold:0.5,action:'WARN',active:true};localRules.push(newR);renderPolicyRules()}
+async function savePolicyRules(){const btn=document.getElementById('policy-save-btn');btn.disabled=true;try{await fetch(`${API}/api/policy-rules`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(localRules)});toast('Rules saved','success')}catch(e){toast('Error','error')}finally{btn.disabled=false}}
+async function evaluatePolicyRules(){if(!S.runId){toast('Run an audit first','warn');return}try{const r=await fetch(`${API}/api/policy-rules/evaluate/${S.runId}`,{method:'POST'});const d=await r.json();document.getElementById('policy-eval-results').style.display='block';const vc={CLEAR:'var(--green)',WARNED:'var(--amber)',BLOCKED:'var(--red)'};document.getElementById('policy-eval-content').innerHTML=`<div style="margin-bottom:10px"><span class="tag" style="color:${vc[d.verdict]||'var(--text3)'};background:${vc[d.verdict]||'var(--text3)'}18;border-color:${vc[d.verdict]||'var(--text3)'}35;font-size:12px">${d.verdict}</span></div>`+d.results.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.02);font-size:11px"><span style="color:var(--text2)">${r.name}</span><span style="font-family:var(--ff-m);font-size:10.5px;color:var(--text3)">${r.current_value}</span><span class="tag tag-${r.passed?'ok':'no'}">${r.passed?'':''} ${r.action}</span></div>`).join('');toast(`Policy verdict: ${d.verdict}`,d.verdict==='BLOCKED'?'error':d.verdict==='WARNED'?'warn':'success')}catch(e){toast('Error','error')}}
+async function resetPolicyRules(){await loadPolicyRules();toast('Rules reset to defaults','success')}
+
+const SHADOW_SAMPLES={claude:`I aim to provide a helpful and thoughtful response to your query.\n\nHere's a breakdown of the key considerations:\n- It's important to note that this is a nuanced topic\n- I want to be clear about the limitations of my analysis\n- Let me be clear: the data supports multiple interpretations\n\nI should mention that my response is based on available information and I'd be happy to clarify further.`,gpt:"Certainly! That's a great question. Of course I'd be happy to help you with that. Let me know if you need any additional information or if there's anything else I can assist you with. Absolutely, I understand that you're looking for a clear answer here.",human:`Hey team, just wanted to follow up on yesterday's meeting. I checked with the ops folks and they said the timeline looks tight but doable. Can someone grab the numbers from Q3 and send them over? Also, the client called again -- nothing urgent, just checking in. Thanks`};
+function loadShadowSample(t){document.getElementById('shadow-input').value=SHADOW_SAMPLES[t]||''}
+async function runShadowScan(){const text=document.getElementById('shadow-input').value.trim();if(!text){toast('Paste some text first','warn');return}const btn=document.getElementById('shadow-btn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Scanning…';try{const r=await fetch(`${API}/api/shadow-ai/scan`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});const d=await r.json();renderShadowResult(d);toast('Scan complete','success')}catch(e){toast('Error: '+e.message,'error')}finally{btn.disabled=false;btn.innerHTML=' Scan for Shadow AI';}}
+const MODEL_EMOJIS={Human:'',Claude:'',GPT:'',Gemini:'',Llama:''};
+function renderShadowResult(d){document.getElementById('shadow-result-card').style.display='block';document.getElementById('shadow-indicators-card').style.display='block';const isHuman=d.verdict==='Human';const vc=isHuman?'var(--green)':'var(--red)';document.getElementById('shadow-verdict-icon').innerHTML=''; try{}catch(e){}document.getElementById('shadow-verdict').innerHTML=`<span style="color:${vc}">${d.verdict==='Human'?'Human Written':'AI Generated'}</span>`;document.getElementById('shadow-confidence').textContent=`Confidence: ${(d.confidence*100).toFixed(0)}% • Words: ${d.word_count}`;const models=['Human',...Object.keys(d.model_scores)];const scores={Human:d.human_probability,...d.model_scores};const scoreColors={Human:'#34d399',Claude:'#38bdf8',GPT:'#818cf8',Gemini:'#c084fc',Llama:'#fbbf24'};document.getElementById('shadow-score-bars').innerHTML=models.map(m=>`<div class="srow"><div class="srow-l" style="font-size:11px">${m}</div><div class="srow-t"><div class="srow-f" style="width:${(scores[m]||0)*100}%;background:${scoreColors[m]||'var(--text3)'}"></div></div><div class="srow-v">${((scores[m]||0)*100).toFixed(0)}%</div></div>`).join('');const inds=d.indicators||[];document.getElementById('shadow-indicators-list').innerHTML=inds.length?inds.map(x=>`<div style="font-size:10.5px;color:var(--amber);padding:3px 0;font-family:var(--ff-m)">→ ${x}</div>`).join(''):'<div style="color:var(--text3);font-size:11.5px">No specific phrase indicators detected.</div>';const st=d.structural||{};document.getElementById('shadow-structural').innerHTML=`Structural: ${st.bullet_lines} bullet lines • avg word length ${st.avg_word_len}`}
+
+// "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
+// FEATURE EXPLAINER POPUPS -- Show on first visit per session
+// "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
+const _explainerSeen = {};
+const FEATURE_EXPLAINERS = {
+  audit: {
+    icon: 'shield', title: 'Bias Audit Engine',
+    badge: 'Core Feature',
+    body: 'Upload a CSV dataset and let DWESH scan it for hidden biases across demographic groups. The engine computes Disparate Impact Ratio, Demographic Parity Difference, and an overall Bias Score — then gives you a clear BIASED or UNBIASED verdict.',
+    steps: ['Upload your CSV with a "label" column and demographic features','Select a domain (Hiring, Loan, Medical, Intersectional)','Click "Run Audit" and review the fairness metrics','Check the verdict banner at the top for a clear biased/unbiased conclusion']
+  },
+  modelcheck: {
+    icon: 'test-tube', title: 'Model Bias Checker',
+    badge: 'NEW — Analysis',
+    body: 'Upload a trained ML model (.pkl, .joblib) along with a test dataset, and DWESH will run multiple bias tests on it: Disparate Impact Analysis, Error Rate Parity, and Counterfactual Fairness Probes. Get a clear verdict on whether your model discriminates.',
+    steps: ['Upload your trained model file (.pkl or .joblib) — or just use a test CSV','Upload the test dataset CSV with sensitive columns and labels','Click "Run Bias Probe" to execute all fairness tests','Review the verdict, disparity charts, and per-group breakdown table']
+  },
+  dashboard: {
+    icon: 'bar-chart-3', title: 'Dashboard Overview',
+    badge: 'Analytics',
+    body: 'Your central command center showing live fairness metrics, bias trends, and group-level performance across all audited models.',
+    steps: ['Run an audit first to populate the dashboard','View real-time metric cards and trend charts','Drill into group-level disparities']
+  },
+  heatmap: {
+    icon: 'map', title: 'Bias Heatmap',
+    badge: 'Visualization',
+    body: 'Visualize bias intensity across every feature-group intersection in your dataset. Darker cells indicate stronger bias — helping you spot hidden discrimination patterns instantly.',
+    steps: ['Run an audit to generate heatmap data','Hover over cells to see exact bias values','Identify which feature × group combinations are most biased']
+  },
+  training: {
+    icon: 'bot', title: 'RL Training Lab',
+    badge: 'AI Engine',
+    body: 'Train a reinforcement learning agent that learns to reduce bias while preserving accuracy. The agent balances fairness and performance through a custom reward function.',
+    steps: ['Configure training parameters (episodes, learning rate)','Click "Start Training" and watch the live progress chart','Review the agent\'s learned bias reduction strategy']
+  },
+  mitigate: {
+    icon: 'shield-check', title: 'Mitigation Engine',
+    badge: 'Remediation',
+    body: 'Get AI-powered recommendations to fix detected biases. The engine suggests reweighting, proxy removal, or threshold adjustments based on your specific bias pattern.',
+    steps: ['Review the detected biases from your audit','Explore recommended mitigation strategies','Apply strategies and re-audit to verify improvement']
+  },
+  whatif: {
+    icon: 'wand-2', title: 'What-If Explorer',
+    badge: 'Simulation',
+    body: 'Change individual features and instantly see how it affects the model\'s prediction. This counterfactual analysis reveals which features drive biased outcomes.',
+    steps: ['Adjust feature values using the sliders','Observe how predictions change in real-time','Identify the most influential features for bias']
+  },
+  monitoring: {
+    icon: 'radio', title: 'Drift Monitoring',
+    badge: 'Real-time',
+    body: 'Continuously monitor your model for fairness drift over time. Get alerts when bias metrics cross critical thresholds so you can act before harm accumulates.',
+    steps: ['Set monitoring thresholds for each metric','View the live drift timeline','Respond to alerts with mitigation actions']
+  },
+  lps: {
+    icon: 'timer', title: 'Longitudinal Policy Search (LPS)',
+    badge: 'DecisionTwin — NEW',
+    body: 'Traditional fairness tools only look at today\'s snapshot. But AI decisions create feedback loops — rejected candidates lose career momentum, denied loans prevent wealth-building. LPS simulates 10+ years into the future to show how today\'s bias compounds into tomorrow\'s crisis.',
+    steps: ['Select a domain (each has unique feedback dynamics)','Click "Run 10-Year Simulation" to see bias evolution','Click "Compare All Strategies" to see which approach survives long-term','The yellow dots on the chart indicate Economic Shocks that hit minority groups harder']
+  },
+  universes: {
+    icon: 'layers', title: 'Causal Parallel Universes',
+    badge: 'DecisionTwin — NEW',
+    body: 'Existing tools flag correlations but can\'t prove causation. This feature forks reality into two parallel simulations -- each applying a different mitigation strategy -- and runs them forward 10 years with identical external conditions. The result is empirical causal proof of which approach actually helps.',
+    steps: ['Choose two strategies to compare (Universe -- vs Universe B)','Click "Fork Reality" to spawn parallel simulations','Compare the diverging trajectory charts','Read the Causal Verdict to see which strategy provides genuine long-term improvement']
+  },
+  costanalysis: {
+    icon: 'scale', title: 'Asymmetric Cost Analysis',
+    badge: 'DecisionTwin — NEW',
+    body: 'Standard fairness tools assume False Positives and False Negatives cost the same. In reality, wrongfully rejecting a minority loan applicant (FN) costs far more than approving a risky one (FP) -- it prevents generational wealth-building. This module computes the true, group-aware harm.',
+    steps: ['Select a domain to see its specific cost asymmetry','Review the harm comparison chart (red = what tools miss)','Check the per-group table for intersectional disparities','The "Underestimate %" shows how much standard tools undercount real harm']
+  },
+  benchmark: {
+    icon: 'trophy', title: 'Fairness Benchmark',
+    badge: 'Intelligence',
+    body: 'Compare your model\'s fairness metrics against industry standards and regulatory thresholds. See where you stand relative to EEOC 4/5ths rule, EU AI Act requirements, and peer models.',
+    steps: ['Run an audit to generate benchmark data','Compare your metrics against regulatory thresholds','Export a compliance report for stakeholders']
+  },
+  shadowai: {
+    icon: 'eye', title: 'Shadow AI Detector',
+    badge: 'Intelligence',
+    body: 'Paste any text and detect whether it was written by a human or AI model (GPT, Claude, Gemini, Llama). Uses linguistic analysis, structural patterns, and model-specific phrase detection.',
+    steps: ['Paste text into the input box or use a sample','Click "Scan for Shadow AI"','Review the model probability scores and phrase indicators']
+  },
+};
+
+function showFeatureExplainer(page) {
+  const info = FEATURE_EXPLAINERS[page];
+  if (!info || _explainerSeen[page]) return;
+  const overlay = document.getElementById('feature-explainer-overlay');
+  if (!overlay) return;
+  _explainerSeen[page] = true;
+
+   try{}catch(e){}
+  const titleEl = document.getElementById('explainer-title');
+  const badgeEl = document.getElementById('explainer-badge');
+  const bodyEl = document.getElementById('explainer-body');
+  const stepsEl = document.getElementById('explainer-steps');
+  if (!titleEl || !badgeEl || !bodyEl || !stepsEl) return;
+  titleEl.textContent = info.title;
+  badgeEl.textContent = info.badge;
+  bodyEl.textContent = info.body;
+
+  const stepsHtml = info.steps.map((s, i) =>
+    `<div class="explainer-step"><div class="explainer-step-num">${i+1}</div><div class="explainer-step-text">${s}</div></div>`
+  ).join('');
+  stepsEl.innerHTML = stepsHtml;
+  overlay.style.display = 'flex';
+}
+
+function closeExplainer() {
+  const overlay = document.getElementById('feature-explainer-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+// "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
+// DECISIONTWIN FEATURES -- Novel Research Implementations
+// "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
+
+// â”€â”€ LPS SIMULATOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const LPS_COLORS={none:'#fb7185',static_threshold:'#fbbf24',reweighting:'#818cf8',dynamic_lps:'#34d399'};
+async function runLPS(){
+  const btn=document.getElementById('lps-btn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Simulating…';
+  showLoad('Running 10-year feedback loop simulation…');
+  try{
+    const domain=document.getElementById('lps-domain').value;
+    const years=parseInt(document.getElementById('lps-years').value)||10;
+    const r=await fetch(`${API}/api/lps/simulate`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain,years,mitigation:''})});
+    const d=await r.json();
+    document.getElementById('lps-results').style.display='block';
+    const traj=d.trajectory,pol=d.policy_recommendation;
+    // Summary cards
+    document.getElementById('lps-metric-cards').innerHTML=`
+      <div class="mcard"><div class="mcard-glow" style="background:var(--red)"></div><div class="mcard-label">Final DI Ratio</div><div class="mcard-val" style="color:var(--text)">${pol.final_di.toFixed(3)}</div><div class="mcard-tag tag-${pol.final_di>=0.8?'ok':'no'}">${pol.final_di>=0.8?' FAIR':'[X] BIASED'}</div></div>
+      <div class="mcard"><div class="mcard-glow" style="background:var(--amber)"></div><div class="mcard-label">Divergence Year</div><div class="mcard-val" style="color:var(--text)">${pol.divergence_year!==null?'Year '+pol.divergence_year:'None'}</div><div class="mcard-tag tag-${pol.divergence_year?'warn':'ok'}">${pol.divergence_year?'âš  FEEDBACK LOOP':'STABLE'}</div></div>
+      <div class="mcard"><div class="mcard-glow" style="background:var(--blue)"></div><div class="mcard-label">DI Change</div><div class="mcard-val" style="color:var(--text)">${pol.di_change_pct>0?'+':''}${pol.di_change_pct}%</div><div class="mcard-tag tag-${pol.di_change_pct>=0?'ok':'no'}">${pol.di_change_pct>=0?'IMPROVED':'DEGRADED'}</div></div>`;
+    // Charts
+    const labels=traj.map(t=>'Y'+t.year);
+    killChart('chart-lps-di');S.charts['chart-lps-di']=new Chart(document.getElementById('chart-lps-di'),{type:'line',data:{labels,datasets:[{label:'DI Ratio',data:traj.map(t=>t.disparate_impact_ratio),borderColor:'#818cf8',backgroundColor:'rgba(129,140,248,.06)',fill:true,tension:.3,borderWidth:2,pointRadius:traj.map(t=>t.economic_event?6:2),pointBackgroundColor:traj.map(t=>t.economic_event?'#fbbf24':'#818cf8')},{label:'Legal Threshold (0.80)',data:labels.map(()=>0.80),borderColor:'rgba(251,113,133,.4)',borderDash:[5,4],borderWidth:1.5,pointRadius:0,fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6b7280',font:{size:9}}}},scales:{x:{ticks:{color:'#6b7280',font:{size:9}},grid:{color:'rgba(128,128,128,.1)'}},y:{min:0.2,max:1,ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},grid:{color:'rgba(128,128,128,.1)'}}}}});
+    killChart('chart-lps-bias');S.charts['chart-lps-bias']=new Chart(document.getElementById('chart-lps-bias'),{type:'line',data:{labels,datasets:[{data:traj.map(t=>t.overall_bias_score),borderColor:'#fb7185',backgroundColor:'rgba(251,113,133,.06)',fill:true,tension:.3,borderWidth:2,pointRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',font:{size:9}},grid:{color:'rgba(128,128,128,.1)'}},y:{min:0,max:1,ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},grid:{color:'rgba(128,128,128,.1)'}}}}});
+    // Table
+    const statusColors={baseline:'var(--text3)',compliant:'var(--green)',warning:'var(--amber)',critical:'var(--red)',catastrophic:'var(--red)'};
+    document.getElementById('lps-table-body').innerHTML=traj.map(t=>`<tr><td style="font-family:var(--ff-m)">Y${t.year}</td><td style="font-family:var(--ff-m);color:${t.disparate_impact_ratio>=0.8?'var(--green)':'var(--red)'}">${t.disparate_impact_ratio.toFixed(4)}</td><td style="font-family:var(--ff-m)">${t.demographic_parity_diff.toFixed(4)}</td><td style="font-family:var(--ff-m)">${t.overall_bias_score.toFixed(4)}</td><td style="font-family:var(--ff-m)">${t.accuracy.toFixed(4)}</td><td>${t.economic_event?'<span class="tag tag-warn"> Econ Shock</span>':t.threshold_adjustment?'<span class="tag tag-info">←» '+t.threshold_adjustment.toFixed(1)+'%</span>':'—'}</td><td><span class="tag" style="color:${statusColors[t.status]||'var(--text3)'};background:${statusColors[t.status]||'var(--text3)'}18;border:1px solid ${statusColors[t.status]||'var(--text3)'}35">${t.status.toUpperCase()}</span></td></tr>`).join('');
+    // Recommendation
+    document.getElementById('lps-recommendation').textContent=pol.summary;
+    toast('10-year simulation complete!','success');
+    try{}catch(e){}
+  }catch(e){toast('Error: '+e.message,'error')}
+  finally{hideLoad();btn.disabled=false;btn.innerHTML='Run 10-Year Simulation';}
+}
+
+async function runLPSCompare(){
+  const btn=document.getElementById('lps-compare-btn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Comparing…';
+  showLoad('Comparing all strategies over 10 years…');
+  try{
+    const domain=document.getElementById('lps-domain').value;
+    const years=parseInt(document.getElementById('lps-years').value)||10;
+    const r=await fetch(`${API}/api/lps/compare`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain,years})});
+    const d=await r.json();
+    document.getElementById('lps-compare-results').style.display='block';
+    const strats=d.strategies;
+    const labels=Array.from({length:years+1},(_,i)=>'Y'+i);
+    // Multi-line chart
+    killChart('chart-lps-compare');S.charts['chart-lps-compare']=new Chart(document.getElementById('chart-lps-compare'),{type:'line',data:{labels,datasets:strats.map(s=>({label:s.label,data:s.trajectory_di,borderColor:LPS_COLORS[s.strategy]||'#8892a4',backgroundColor:(LPS_COLORS[s.strategy]||'#8892a4')+'10',fill:false,tension:.3,borderWidth:s.strategy==='dynamic_lps'?3:2,pointRadius:s.strategy==='dynamic_lps'?3:1})).concat([{label:'Legal Threshold',data:labels.map(()=>0.80),borderColor:'rgba(255,255,255,.15)',borderDash:[5,4],borderWidth:1,pointRadius:0,fill:false}])},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6b7280',font:{size:9,family:'Outfit'},boxWidth:10}}},scales:{x:{ticks:{color:'#6b7280',font:{size:9}},grid:{color:'rgba(128,128,128,.1)'}},y:{min:0.2,max:1,ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},grid:{color:'rgba(128,128,128,.1)'}}}}}); 
+    // Leaderboard
+    document.getElementById('lps-compare-leaderboard').innerHTML=strats.map(s=>`<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.03)"><div style="width:26px;height:26px;border-radius:8px;background:${LPS_COLORS[s.strategy]||'#8892a4'}18;border:1px solid ${LPS_COLORS[s.strategy]||'#8892a4'}35;display:flex;align-items:center;justify-content:center;font-family:var(--ff-h);font-weight:700;font-size:12px;color:${LPS_COLORS[s.strategy]||'#8892a4'}">#${s.rank}</div><div style="flex:1"><div style="font-size:12.5px;font-weight:550;color:var(--text)">${s.label}</div><div style="font-size:10.5px;color:var(--text3);margin-top:2px">${s.summary}</div></div><div style="display:flex;gap:14px;align-items:center"><div style="text-align:center"><div style="font-family:var(--ff-m);font-size:14px;color:${s.final_di>=0.8?'var(--green)':'var(--red)'}">${s.final_di.toFixed(3)}</div><div style="font-size:8px;color:var(--text3);text-transform:uppercase">DI</div></div><div style="text-align:center"><div style="font-family:var(--ff-m);font-size:14px;color:var(--text2)">${(s.final_accuracy*100).toFixed(1)}%</div><div style="font-size:8px;color:var(--text3);text-transform:uppercase">Acc</div></div></div></div>`).join('');
+    document.getElementById('lps-compare-conclusion').textContent=d.conclusion;
+    toast('Strategy comparison complete!','success');
+  }catch(e){toast('Error: '+e.message,'error')}
+  finally{hideLoad();btn.disabled=false;btn.innerHTML='Compare All Strategies';}
+}
+
+// â”€â”€ PARALLEL UNIVERSES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+async function runParallelUniverses(){
+  const btn=document.getElementById('pu-btn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Forking Reality…';
+  showLoad('Spawning parallel universes…');
+  try{
+    const domain=document.getElementById('pu-domain').value;
+    const a=document.getElementById('pu-strat-a').value;
+    const b=document.getElementById('pu-strat-b').value;
+    const years=parseInt(document.getElementById('pu-years').value)||10;
+    const r=await fetch(`${API}/api/causal/compare`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain,universe_a:a,universe_b:b,years})});
+    const d=await r.json();
+    document.getElementById('pu-results').style.display='block';
+    const ua=d.universe_a,ub=d.universe_b,cv=d.causal_verdict;
+    // Universe cards
+    document.getElementById('pu-label-a').textContent=ua.label;
+    document.getElementById('pu-desc-a').textContent=ua.description;
+    document.getElementById('pu-di-a').textContent=ua.final_di.toFixed(3);
+    document.getElementById('pu-bias-a').textContent=ua.final_bias.toFixed(3);
+    document.getElementById('pu-acc-a').textContent=(ua.final_accuracy*100).toFixed(1)+'%';
+    document.getElementById('pu-label-b').textContent=ub.label;
+    document.getElementById('pu-desc-b').textContent=ub.description;
+    document.getElementById('pu-di-b').textContent=ub.final_di.toFixed(3);
+    document.getElementById('pu-bias-b').textContent=ub.final_bias.toFixed(3);
+    document.getElementById('pu-acc-b').textContent=(ub.final_accuracy*100).toFixed(1)+'%';
+    // Charts
+    const labels=ua.trajectory.map(t=>'Y'+t.year);
+    killChart('chart-pu-di');S.charts['chart-pu-di']=new Chart(document.getElementById('chart-pu-di'),{type:'line',data:{labels,datasets:[{label:'Universe A: '+ua.label,data:ua.trajectory.map(t=>t.di),borderColor:'#38bdf8',backgroundColor:'rgba(56,189,248,.06)',fill:true,tension:.3,borderWidth:2,pointRadius:2},{label:'Universe B: '+ub.label,data:ub.trajectory.map(t=>t.di),borderColor:'#818cf8',backgroundColor:'rgba(129,140,248,.06)',fill:true,tension:.3,borderWidth:2,pointRadius:2},{label:'Legal (0.80)',data:labels.map(()=>0.80),borderColor:'rgba(251,113,133,.3)',borderDash:[5,4],borderWidth:1,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6b7280',font:{size:9},boxWidth:10}}},scales:{x:{ticks:{color:'#6b7280',font:{size:9}},grid:{color:'rgba(128,128,128,.1)'}},y:{min:0.2,max:1,ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},grid:{color:'rgba(128,128,128,.1)'}}}}}); 
+    killChart('chart-pu-bias');S.charts['chart-pu-bias']=new Chart(document.getElementById('chart-pu-bias'),{type:'line',data:{labels,datasets:[{label:'Universe A',data:ua.trajectory.map(t=>t.bias),borderColor:'#38bdf8',tension:.3,borderWidth:2,pointRadius:2,fill:false},{label:'Universe B',data:ub.trajectory.map(t=>t.bias),borderColor:'#818cf8',tension:.3,borderWidth:2,pointRadius:2,fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6b7280',font:{size:9},boxWidth:10}}},scales:{x:{ticks:{color:'#6b7280',font:{size:9}},grid:{color:'rgba(128,128,128,.1)'}},y:{min:0,max:1,ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},grid:{color:'rgba(128,128,128,.1)'}}}}}); 
+    // Verdict
+    document.getElementById('pu-verdict').textContent=cv.verdict;
+    toast('Parallel universes simulated!','success');
+    try{}catch(e){}
+  }catch(e){toast('Error: '+e.message,'error')}
+  finally{hideLoad();btn.disabled=false;btn.innerHTML='Fork Reality';}
+}
+
+// â”€â”€ COST ANALYSIS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+async function runCostAnalysis(){
+  const btn=document.getElementById('cost-btn');btn.disabled=true;btn.innerHTML='<div class="spin"></div> Analyzing…';
+  showLoad('Computing asymmetric harm costs…');
+  try{
+    const domain=document.getElementById('cost-domain').value;
+    const r=await fetch(`${API}/api/cost-analysis`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain})});
+    const d=await r.json();
+    document.getElementById('cost-results').style.display='block';
+    // Summary cards
+    document.getElementById('cost-summary-cards').innerHTML=`
+      <div class="mcard" style="color:var(--red)"><div class="mcard-glow" style="background:var(--red)"></div><div class="mcard-label">Harm Underestimation</div><div class="mcard-val" style="color:var(--text)">+${d.harm_underestimate_pct}%</div><div class="mcard-tag tag-no">âš  HIDDEN HARM</div></div>
+      <div class="mcard" style="color:var(--amber)"><div class="mcard-glow" style="background:var(--amber)"></div><div class="mcard-label">Worst Affected</div><div class="mcard-val" style="color:var(--text);font-size:18px">${d.worst_affected_group}</div><div class="mcard-tag tag-warn">HIGHEST HARM</div></div>
+      <div class="mcard" style="color:var(--blue)"><div class="mcard-glow" style="background:var(--blue)"></div><div class="mcard-label">Community Impact</div><div class="mcard-val" style="color:var(--text)">${d.community_impact_score.toFixed(3)}</div><div class="mcard-tag tag-info">IMPACT SCORE</div></div>`;
+    // Charts
+    const gc=d.group_costs;
+    killChart('chart-cost-bars');S.charts['chart-cost-bars']=new Chart(document.getElementById('chart-cost-bars'),{type:'bar',data:{labels:gc.map(g=>g.group),datasets:[{label:'Weighted Harm (Real)',data:gc.map(g=>g.weighted_harm),backgroundColor:'rgba(251,113,133,.18)',borderColor:'#fb7185',borderWidth:1.5,borderRadius:4},{label:'Symmetric Harm (Standard)',data:gc.map(g=>g.symmetric_harm),backgroundColor:'rgba(129,140,248,.18)',borderColor:'#818cf8',borderWidth:1.5,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#6b7280',font:{size:9},boxWidth:10}}},scales:{x:{ticks:{color:'#6b7280',font:{size:8},maxRotation:45},grid:{color:'rgba(128,128,128,.1)'}},y:{ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'}},grid:{color:'rgba(128,128,128,.1)'}}}}});
+    killChart('chart-cost-underest');S.charts['chart-cost-underest']=new Chart(document.getElementById('chart-cost-underest'),{type:'bar',data:{labels:gc.map(g=>g.group),datasets:[{data:gc.map(g=>g.harm_underestimate_pct),backgroundColor:gc.map(g=>g.harm_underestimate_pct>30?'rgba(251,113,133,.25)':g.harm_underestimate_pct>10?'rgba(251,191,36,.25)':'rgba(52,211,153,.25)'),borderColor:gc.map(g=>g.harm_underestimate_pct>30?'#fb7185':g.harm_underestimate_pct>10?'#fbbf24':'#34d399'),borderWidth:1.5,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',font:{size:8},maxRotation:45},grid:{color:'rgba(128,128,128,.1)'}},y:{ticks:{color:'#6b7280',font:{size:9,family:'DM Mono'},callback:v=>v+'%'},grid:{color:'rgba(128,128,128,.1)'}}}}});
+    // Table
+    document.getElementById('cost-table-body').innerHTML=gc.map(g=>`<tr><td style="padding-left:16px;font-weight:450;color:${g.is_intersectional?'var(--red)':g.is_minority?'var(--amber)':'var(--text2)'}">${g.group}</td><td style="font-family:var(--ff-m)">${g.fpr.toFixed(4)}</td><td style="font-family:var(--ff-m)">${g.fnr.toFixed(4)}</td><td style="font-family:var(--ff-m)">${g.fp_cost_weight.toFixed(1)}×</td><td style="font-family:var(--ff-m);color:${g.fn_cost_weight>2?'var(--red)':'var(--text2)'}">${g.fn_cost_weight.toFixed(1)}×</td><td style="font-family:var(--ff-m);color:var(--red)">${g.weighted_harm.toFixed(4)}</td><td style="font-family:var(--ff-m);color:var(--text3)">${g.symmetric_harm.toFixed(4)}</td><td style="padding-right:16px"><span class="tag tag-${g.harm_underestimate_pct>30?'no':g.harm_underestimate_pct>10?'warn':'ok'}">+${g.harm_underestimate_pct}%</span></td></tr>`).join('');
+    // Explanation
+    document.getElementById('cost-explanation').textContent=d.explanation;
+    toast('Cost analysis complete!','success');
+    try{}catch(e){}
+  }catch(e){toast('Error: '+e.message,'error')}
+  finally{hideLoad();btn.disabled=false;btn.innerHTML='Analyze Costs';}
+}
+
+// "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
+// MODEL BIAS CHECKER
+// "?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?"?
+let mcModelFile=null, mcTestFile=null;
+
+function onModelFileSelected(input, type){
+  const file=input.files[0];
+  if(!file)return;
+  if(type==='model'){
+    mcModelFile=file;
+    document.getElementById('model-file-text').textContent=file.name+' ('+Math.round(file.size/1024)+'KB)';
+  } else {
+    mcTestFile=file;
+    document.getElementById('test-file-text').textContent=file.name+' ('+Math.round(file.size/1024)+'KB)';
+  }
+}
+
+async function loadSampleModelCheck(){
+  // Fetch a sample CSV and use it as both "model output" and test data
+  try{
+    const resp=await fetch('/sample_data/gender_biased.csv');
+    const blob=await resp.blob();
+    mcTestFile=new File([blob],'gender_biased.csv',{type:'text/csv'});
+    mcModelFile=mcTestFile; // use CSV as model fallback
+    document.getElementById('model-file-text').textContent='gender_biased.csv (sample)';
+    document.getElementById('test-file-text').textContent='gender_biased.csv (sample)';
+    toast('Sample loaded! Click Run Bias Probe','info');
+  }catch(e){toast('Could not load sample: '+e.message,'error')}
+}
+
+async function runModelCheck(){
+  if(!mcTestFile){toast('Please upload a test CSV file','error');return}
+  const btn=document.getElementById('mc-btn');
+  btn.disabled=true;document.getElementById('mc-btn-text').textContent='Probing...';
+  showLoad('Running model bias probe...');
+  try{
+    const fd=new FormData();
+    fd.append('model_file',mcModelFile||mcTestFile);
+    fd.append('test_file',mcTestFile);
+    fd.append('sensitive_cols',document.getElementById('mc-sensitive').value);
+    fd.append('target_col',document.getElementById('mc-target').value);
+    const r=await fetch(`${API}/api/model-check`,{method:'POST',body:fd});
+    const d=await r.json();
+    renderModelCheck(d);
+    toast('Model bias probe complete!','success');
+  }catch(e){toast('Error: '+e.message,'error')}
+  finally{hideLoad();btn.disabled=false;document.getElementById('mc-btn-text').textContent='Run Bias Probe';}
+}
+
+function renderModelCheck(d){
+  document.getElementById('mc-empty').style.display='none';
+  document.getElementById('mc-results').style.display='block';
+
+  // Verdict
+  const vc=d.verdict==='FAIR'?'green':d.verdict==='MODERATELY BIASED'?'amber':'red';
+  const vcCard=document.getElementById('mc-verdict-card');
+  vcCard.style.background=vc==='green'?'rgba(52,211,153,.06)':vc==='red'?'rgba(251,113,133,.06)':'rgba(251,191,36,.06)';
+  vcCard.style.border=`1px solid ${vc==='green'?'rgba(52,211,153,.2)':vc==='red'?'rgba(251,113,133,.2)':'rgba(251,191,36,.2)'}`;
+  const mve=document.getElementById('mc-verdict-emoji');if(mve)mve.textContent=d.verdict_emoji||'â“';
+  document.getElementById('mc-verdict-label').innerHTML=`<span style="color:var(--${vc})">${d.verdict}</span>`;
+  document.getElementById('mc-verdict-detail').textContent=d.verdict_detail||'';
+
+  // Summary cards
+  const cards=[
+    {l:'Test Rows',v:d.test_rows,t:'ANALYZED',c:'ok',col:'var(--blue)'},
+    {l:'Tests Run',v:`${d.num_tests_passed}/${d.num_tests_total}`,t:'PASSED',c:'ok',col:'var(--green)'},
+    {l:'Biased Attributes',v:d.num_biased_attributes,t:d.num_biased_attributes>0?'FOUND':'NONE',c:d.num_biased_attributes>0?'no':'ok',col:d.num_biased_attributes>0?'var(--red)':'var(--green)'},
+    {l:'Model Type',v:d.model_loaded?d.model_type:'CSV Labels',t:d.model_loaded?'LOADED':'FALLBACK',c:d.model_loaded?'ok':'warn',col:'var(--purple)'}
+  ];
+  document.getElementById('mc-summary-cards').innerHTML=cards.map(x=>`<div class="mcard" style="color:${x.col}"><div class="mcard-glow" style="background:${x.col}"></div><div class="mcard-label">${x.l}</div><div class="mcard-val" style="color:var(--text)">${x.v}</div><div class="mcard-tag tag-${x.c}">● ${x.t}</div></div>`).join('');
+
+  // Tests list
+  const statusIcon={PASSED:'check-circle',FAIR:'check-circle',COMPLETED:'check-circle',VIOLATED:'alert-circle','BIAS FOUND':'alert-triangle',SKIPPED:'minus-circle'};
+  document.getElementById('mc-tests-list').innerHTML=(d.tests_run||[]).map(t=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:16px">${statusIcon[t.status]||'â“'}</span><div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--text)">${t.test}</div><div style="font-size:10px;color:var(--text3)">${t.method}</div></div><span class="tag tag-${t.status==='PASSED'||t.status==='FAIR'||t.status==='COMPLETED'?'ok':t.status==='SKIPPED'?'warn':'no'}" style="font-size:9px">${t.status}</span></div>`).join('');
+
+  // Disparity chart
+  const disp=d.disparity_results||[];
+  if(disp.length){
+    killChart('mc-disparity-chart');
+    const ctx=document.getElementById('mc-disparity-chart').getContext('2d');
+    S.charts['mc-disparity-chart']=new Chart(ctx,{type:'bar',data:{labels:disp.map(d=>d.attribute),datasets:[{label:'Disparate Impact',data:disp.map(d=>d.disparate_impact_ratio),backgroundColor:disp.map(d=>d.is_biased?'rgba(251,113,133,.7)':'rgba(52,211,153,.7)'),borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},annotation:{annotations:{line1:{type:'line',yMin:0.8,yMax:0.8,borderColor:'rgba(251,191,36,.5)',borderDash:[6,3],borderWidth:1,label:{display:true,content:'Legal Threshold (0.80)',position:'end',font:{size:9}}}}}},scales:{y:{min:0,max:1,ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},x:{ticks:{color:'#94a3b8',font:{size:10}},grid:{display:false}}}}});
+
+    // Rates chart -- show all groups from the first disparity result
+    killChart('mc-rates-chart');
+    const firstDisp=disp[0];
+    if(firstDisp && firstDisp.groups){
+      const gNames=Object.keys(firstDisp.groups);
+      const gRates=gNames.map(n=>firstDisp.groups[n].positive_rate);
+      const ctx2=document.getElementById('mc-rates-chart').getContext('2d');
+      S.charts['mc-rates-chart']=new Chart(ctx2,{type:'bar',data:{labels:gNames,datasets:[{label:'Positive Rate',data:gRates,backgroundColor:gRates.map(r=>r<0.3?'rgba(251,113,133,.6)':'rgba(56,189,248,.6)'),borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{min:0,max:1,ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#94a3b8',font:{size:10}},grid:{display:false}}}}});
+    }
+  }
+
+  // Group details table
+  let tableHtml='<table class="t"><thead><tr><th>Attribute</th><th>Group</th><th>Total</th><th>Positive</th><th>Rate</th><th>FPR</th><th>FNR</th><th>Accuracy</th></tr></thead><tbody>';
+  disp.forEach(dr=>{
+    const groups=dr.groups||{};
+    Object.entries(groups).forEach(([gn,gd])=>{
+      const rateColor=gd.positive_rate<0.3?'var(--red)':gd.positive_rate>0.6?'var(--green)':'var(--amber)';
+      tableHtml+=`<tr><td>${dr.attribute}</td><td style="font-weight:600">${gn}</td><td>${gd.total}</td><td>${gd.positive_predictions}</td><td style="color:${rateColor};font-weight:600">${(gd.positive_rate*100).toFixed(1)}%</td><td>${(gd.fpr*100).toFixed(1)}%</td><td>${(gd.fnr*100).toFixed(1)}%</td><td>${(gd.accuracy*100).toFixed(1)}%</td></tr>`;
+    });
+  });
+  tableHtml+='</tbody></table>';
+  document.getElementById('mc-group-table').innerHTML=tableHtml;
+  try{}catch(e){}
+}
+
+// "?"? THEME TOGGLE "?"?
+function toggleTheme(){
+  const html=document.documentElement;
+  const isDark=html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme',isDark?'':'dark');
+  localStorage.setItem('dwesh-theme',isDark?'light':'dark');
+  updateThemeUI(!isDark);
+}
+function updateThemeUI(isDark){
+  const sun=document.getElementById('theme-icon-sun');
+  const moon=document.getElementById('theme-icon-moon');
+  const label=document.getElementById('theme-label');
+  if(sun)sun.style.display=isDark?'block':'none';
+  if(moon)moon.style.display=isDark?'none':'block';
+  if(label)label.textContent=isDark?'Light Mode':'Dark Mode';
+  // Update Chart.js defaults for theme
+  if(typeof Chart!=='undefined'){
+    Chart.defaults.color=isDark?'#94a3b8':'#6b7280';
+    Chart.defaults.borderColor=isDark?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)';
+  }
+}
+// Init theme on load
+(function(){
+  const saved=localStorage.getItem('dwesh-theme');
+  const prefersDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const useDark=saved?saved==='dark':prefersDark;
+  document.documentElement.setAttribute('data-theme',useDark?'dark':'');
+  updateThemeUI(useDark);
+})();
+</script>
+</body>
+</html>

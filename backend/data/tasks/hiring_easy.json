@@ -1,0 +1,14 @@
+{
+  "id": "hiring_easy",
+  "name": "Tech Hiring Dataset",
+  "domain": "hiring",
+  "difficulty": "easy",
+  "description": "Hiring decisions for software engineers. Gender bias injected via label flipping.",
+  "sensitive_attributes": ["gender"],
+  "target": "hired",
+  "bias_types_injected": ["label_bias"],
+  "bias_severity": 0.3,
+  "n_samples": 500,
+  "features": ["years_exp", "gpa", "coding_score", "interview_score", "gender"],
+  "expected_violations": ["FP-01", "FP-03"]
+}

@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+*.pyc
+.git/
+.gitignore
+.vscode/
+*.md
+generate_ppt.py
+DWESH_Solution_Challenge_2026.pptx

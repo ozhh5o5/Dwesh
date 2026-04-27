@@ -1,0 +1,14 @@
+{
+  "id": "loan_medium",
+  "name": "Bank Loan Approval",
+  "domain": "finance",
+  "difficulty": "medium",
+  "description": "Loan decisions with ZIP code proxy for race.",
+  "sensitive_attributes": ["race"],
+  "target": "approved",
+  "bias_types_injected": ["proxy_feature", "imbalanced_sampling"],
+  "bias_severity": 0.5,
+  "n_samples": 1000,
+  "features": ["income", "credit_score", "zip_code", "loan_amount", "race"],
+  "expected_violations": ["FP-02", "FP-06", "FP-09"]
+}

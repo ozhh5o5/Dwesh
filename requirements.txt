@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+pydantic
+torch
+scikit-learn
+numpy
+pandas
+google-cloud-storage
+google-generativeai
+firebase-admin
+python-multipart
+gymnasium
+stable-baselines3
+motor
+python-dotenv
