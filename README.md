@@ -71,6 +71,3 @@ This repo is set up to avoid committing generated artifacts:
 
 - Technical deep-dive: [DOCUMENTATION.md](DOCUMENTATION.md)
 
-## License
-
-If you’re submitting publicly, add a `LICENSE` file matching your intended license (the documentation currently references MIT).
