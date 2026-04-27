@@ -27,31 +27,6 @@ This repository is prepared for **Google Solution Challenge 2026** submission.
 - **Backend**: FastAPI service in [backend/main.py](backend/main.py)
 - **Sample data**: small curated CSVs in [frontend/sample_data](frontend/sample_data)
 
-The backend serves the frontend at `/`, so you can run everything from one server.
-
-## Run locally (Windows/macOS/Linux)
-
-### 1) Backend
-
-From the repo root:
-
-- Create and activate a virtual environment
-- Install dependencies
-- Start the server
-
-Commands:
-
-- `python -m venv .venv`
-- Windows PowerShell: `.\.venv\Scripts\Activate.ps1`
-- `pip install -r requirements.txt`
-- `python backend/main.py`
-
-Open:
-
-- `http://127.0.0.1:8000`
-
-
-
 ## More details
 
 - Technical deep-dive: [DOCUMENTATION.md](DOCUMENTATION.md)
