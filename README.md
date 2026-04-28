@@ -64,7 +64,7 @@ You can place these in `backend/.env` (ignored by git).
 DWESH can be deployed to **a single Vercel project**:
 
 - Static SPA served at `/` from `frontend/index.html`
-- FastAPI served at `/api/*` via Vercel Python Functions (`api/index.py`)
+- FastAPI served from a single Vercel Function (entrypoint: `app.py`)
 - Sample CSVs served at `/sample_data/*` from `frontend/sample_data/*`
 
 ### 1) Vercel project settings
