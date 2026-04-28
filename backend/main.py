@@ -43,6 +43,20 @@ _train_lock = threading.Lock()
 # ====== Audit Trail ======
 _audit_log: list = []
 
+
+async def _get_run(run_id: str) -> dict | None:
+    run = _runs.get(run_id)
+    if run:
+        return run
+    try:
+        doc = await db.fairforge_runs.find_one({"run_id": run_id}, {"_id": 0})
+        if doc:
+            _runs[run_id] = doc
+            return doc
+    except Exception as e:
+        logger.warning(f"run lookup failed: {e}")
+    return None
+
 def _compute_hash(data: str) -> str:
     return hashlib.sha256(data.encode()).hexdigest()
 
@@ -333,7 +347,7 @@ async def get_policies(run_id: str):
 
 @api_router.get("/report/{run_id}")
 async def get_report(run_id: str):
-    run = _runs.get(run_id)
+    run = await _get_run(run_id)
     if not run:
         return JSONResponse({"error": "not found"}, status_code=404)
     score = round(sum(run["grader"].values()) / len(run["grader"]), 1)
@@ -353,7 +367,7 @@ class MitigateBody(BaseModel):
 
 @api_router.post("/mitigate")
 async def apply_mitigation(body: MitigateBody):
-    run = _runs.get(body.run_id)
+    run = await _get_run(body.run_id)
     if not run:
         return JSONResponse({"error": "not found"}, status_code=404)
     before = dict(run["metrics"])
@@ -445,7 +459,7 @@ def _train_worker(episodes: int, bias_start: float):
 async def start_train(body: TrainBody):
     if _train["active"]:
         return {"success": False, "message": "Training already in progress"}
-    run = _runs.get(body.run_id)
+    run = await _get_run(body.run_id)
     bias_start = run["metrics"]["overall_bias_score"] if run else 0.7
     thread = threading.Thread(target=_train_worker, args=(max(10, min(200, body.episodes)), bias_start), daemon=True)
     thread.start()
